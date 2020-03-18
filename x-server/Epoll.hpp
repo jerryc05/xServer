@@ -1,9 +1,7 @@
 #ifndef XSERVER_EPOLL_HPP
 #define XSERVER_EPOLL_HPP
 
-#ifdef unix
-#include <sys/epoll.h>
-#endif
+#include "env-settings.hpp"
 
 class Epoll {
 public:
