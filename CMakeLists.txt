@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 2.4)
 project(xServer)
 message("")
 
-add_executable(xServer main.cpp x-server/env-settings.hpp x-server/Epoll.cpp x-server/Epoll.hpp x-server/Socket.cpp x-server/Socket.hpp x-server/IpAddr.cpp x-server/IpAddr.hpp)
+add_executable(xServer
+        main.cpp
+        x-server/env-settings.hpp
+        x-server/Epoll.cpp x-server/Epoll.hpp
+        x-server/Socket.cpp x-server/Socket.hpp
+        x-server/IpAddr.cpp x-server/IpAddr.hpp
+        utils/logger.cpp utils/logger.hpp)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message("Adding GCC Flags...")
