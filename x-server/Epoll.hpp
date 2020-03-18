@@ -9,7 +9,6 @@ class Epoll {
 public:
   explicit Epoll(int cloexec_flag = EPOLL_CLOEXEC);
 
-
 private:
   int epfd; // epoll file descriptor
 };
