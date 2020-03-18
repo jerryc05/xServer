@@ -4,8 +4,12 @@
 #include "IpAddr.hpp"
 
 class Socket {
+public:
+  void loop();
+
 protected:
-  Socket(const IpAddr &ip_addr, int type, int protocol);
+  Socket(const IpAddr &ip_addr, int type, int protocol, int queue_len = 16);
+  ~Socket();
 
 private:
   int sockfd; // socket file descriptor

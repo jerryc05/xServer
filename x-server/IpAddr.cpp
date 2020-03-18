@@ -18,15 +18,14 @@ IpAddr::~IpAddr() = default;
   }
 }
 
-Tuple<const SockAddr *, SockAddrLen> IpAddrV4::sock_addr_info() const {
-  return make_tuple(
-          reinterpret_cast<const SockAddr *>(&sock_addr_in),
-          static_cast<SockAddrLen >(sizeof(sock_addr_in))
-  );
+inline SockAddrFamily IpAddrV4::addr_family() const {
+  return sock_addr_in.sin_family;
 }
 
-SockAddrFamily IpAddrV4::addr_family() const {
-  return sock_addr_in.sin_family;
+inline SockAddrInfo &IpAddrV4::sock_addr_info(SockAddrInfo &info) const {
+  get<0>(info) = reinterpret_cast<const SockAddr *>(&sock_addr_in);
+  get<1>(info) = static_cast<SockAddrLen >(sizeof(sock_addr_in));
+  return info;
 }
 
 [[maybe_unused]] IpAddrV6::IpAddrV6(const char *ip_addr_v6, uint16_t port_num) {
@@ -43,14 +42,12 @@ SockAddrFamily IpAddrV4::addr_family() const {
   }
 }
 
-Tuple<const SockAddr *, SockAddrLen> IpAddrV6::sock_addr_info() const {
-
-  return make_tuple(
-          reinterpret_cast<const SockAddr *>(&sock_addr_in6),
-          static_cast<SockAddrLen >(sizeof(sock_addr_in6))
-  );
+inline SockAddrFamily IpAddrV6::addr_family() const {
+  return sock_addr_in6.sin6_family;
 }
 
-SockAddrFamily IpAddrV6::addr_family() const {
-  return sock_addr_in6.sin6_family;
+inline SockAddrInfo &IpAddrV6::sock_addr_info(SockAddrInfo &info) const {
+  get<0>(info) = reinterpret_cast<const SockAddr *>(&sock_addr_in6);
+  get<1>(info) = static_cast<SockAddrLen >(sizeof(sock_addr_in6));
+  return info;
 }
