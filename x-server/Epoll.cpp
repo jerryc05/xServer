@@ -10,7 +10,7 @@ Epoll::Epoll(int cloexec_flag) {
 #ifndef NDEBUG
     assert(errno != 0);
 #endif
-    log_e() << strerror(errno);
+    log_e() << strerror(errno) << '\n';
     exit(ERR_CODE_EPOLL_CREATE1_ERROR);
   }
 }

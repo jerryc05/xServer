@@ -12,7 +12,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << "ERR!  " << strerror(errno);
+      log_e() << "ERR!  " << strerror(errno) << '\n';
       exit(ERR_CODE_CREATE_SOCKET_ERROR);
     }
     log_d() << "Socket created w/ file descriptor: " << sockfd << '\n';
@@ -24,7 +24,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno);
+      log_e() << strerror(errno) << '\n';
       exit(ERR_CODE_SET_SOCK_OPT_REUSE_ERROR);
     }
     log_d() << "Socket set to reuse address!\n";
@@ -37,7 +37,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno);
+      log_e() << strerror(errno) << '\n';
       exit(ERR_CODE_BIND_SOCK_ERROR);
     }
     log_i() << "Socket bound to address: ";
@@ -53,7 +53,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
                 sizeof(client_addr_str));
         if (addr == nullptr) {
           assert(errno != 0);
-          log_e() << strerror(errno);
+          log_e() << strerror(errno) << '\n';
           exit(ERR_CODE_INET_NTOP_ERROR);
         }
         cout << addr;
@@ -69,7 +69,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
                 sizeof(client_addr_str));
         if (addr == nullptr) {
           assert(errno != 0);
-          log_e() << strerror(errno);
+          log_e() << strerror(errno) << '\n';
           exit(ERR_CODE_INET_NTOP_ERROR);
         }
         cout << addr;
@@ -87,7 +87,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno);
+      log_e() << strerror(errno) << '\n';
       exit(ERR_CODE_LISTEN_SOCK_ERROR);
     }
   }
@@ -105,65 +105,74 @@ Socket::~Socket() {
   switch (ip_addr.addr_type) {
     case IpAddrType::IpAddrV4: {
       for (;;) {
-        SockAddrIn clientAddr;
-        int        clientSockfd;
+        SockAddrIn client_addr;
+        int        client_sockfd;
 
         /* Do TCP handshake with client */ {
-          SockCallLen clientAddrLen = sizeof(clientAddr);
+          SockCallLen clientAddrLen = sizeof(client_addr);
 
-          clientSockfd = accept4(sockfd, reinterpret_cast<SockAddr *>(&clientAddr),
-                                 &clientAddrLen, SOCK_NONBLOCK | SOCK_CLOEXEC);
+          client_sockfd = accept4(sockfd, reinterpret_cast<SockAddr *>(&client_addr),
+                                  &clientAddrLen, SOCK_NONBLOCK | SOCK_CLOEXEC);
 
-          if (clientSockfd != 0) {
+          if (client_sockfd < 0) {
 #ifndef NDEBUG
             assert(errno != 0);
 #endif
-            log_e() << "Socket::loop() >> IpAddrV4 >> accept4():\n"
-                    << strerror(errno);
+            log_e() << "Socket::loop() >> IpAddrV4 >> accept4():\n\t"
+                    << strerror(errno) << '\n';
             continue;
           }
         }
 
         /* Display IP Address */ {
           char clientAddrStr[INET_ADDRSTRLEN];
-          inet_ntop(AF_INET, &(clientAddr.sin_addr),
+          inet_ntop(AF_INET, &(client_addr.sin_addr),
                     clientAddrStr, sizeof(clientAddrStr));
           log_i() << "New connection from: "
-                  << clientAddrStr << ':' << ntohs(clientAddr.sin_port) << '\n';
+                  << clientAddrStr << ':' << ntohs(client_addr.sin_port) << '\n';
         }
 
-        /* Wait for data from client */
-        Byte buffer[512];
-        if (recv(clientSockfd, &buffer, sizeof(buffer),
-                 MSG_DONTWAIT) != 0) {
+        /* Wait for data from client */ {
+          Byte r_buf[512];
+          if (recv(client_sockfd, &r_buf, sizeof(r_buf),
+                   MSG_DONTWAIT) != 0) {
 #ifndef NDEBUG
-          assert(errno != 0);
+            assert(errno != 0);
 #endif
-          log_e() << "Socket::loop() >> IpAddrV4 >> recv():\n"
-                  << strerror(errno);
-          close(clientSockfd);
-          continue;
+            log_e() << "Socket::loop() >> IpAddrV4 >> recv():\n\t"
+                    << strerror(errno) << '\n';
+            close(client_sockfd);
+            continue;
+          }
         }
-//
-//  /* Do very useful thing with received data :-) */
-//  ch++;
-//
-//  /* Send response to client */
-//  ret = write(client_sock_fd, &ch, 1);
-//  if (ret == -1) {
-//    perror("write()");
-//    close(client_sock_fd);
-//    continue;
-//  }
-//
-//  /* Do TCP teardown */
-//  ret = close(client_sock_fd);
-//  if (ret == -1) {
-//    perror("close()");
-//    client_sock_fd = -1;
-//  }
-//
-//  printf("Connection closed\n");
+
+        /* Send response to client */ {
+          char w_buf[]{"Hello, World!"};
+          if (send(client_sockfd, &w_buf, sizeof(w_buf), MSG_DONTWAIT) != 0) {
+#ifndef NDEBUG
+            assert(errno != 0);
+#endif
+            log_e() << "Socket::loop() >> IpAddrV4 >> send():\n\t"
+                    << strerror(errno) << '\n';
+            close(client_sockfd);
+            continue;
+          }
+        }
+
+        /* TCP teardown */ {
+//          auto client_sockfd_copy = client_sockfd;
+//          client_sockfd = -1;
+          if (close(client_sockfd) != 0) {
+#ifndef NDEBUG
+            assert(errno != 0);
+#endif
+            log_e() << "Socket::loop() >> IpAddrV4 >> close():\n\t"
+                    << strerror(errno) << '\n';
+            continue;
+          }
+        }
+
+        cout << ("Connection closed\n");
       }
     }
 
