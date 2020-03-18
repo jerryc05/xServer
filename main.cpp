@@ -14,7 +14,7 @@ auto init_env() {
 int main(int argc, char *argv[]) {
   init_env();
 
-  IpAddrV4  ip("127.0.0.10", 6006);
+  IpAddrV4  ip("127.0.0.1", 6006);
   TcpSocket tcp(ip);
   tcp.loop();
 }

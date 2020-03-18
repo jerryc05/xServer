@@ -8,26 +8,26 @@ public:
   [[noreturn]] void loop();
 
 protected:
-  Socket(const IpAddr &ip_addr, int type, int protocol, int queue_len = 16);
+  Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len = 16);
 
   ~Socket();
 
 private:
-  int sockfd; // socket file descriptor
-  const IpAddr &ip_addr_;
+  int          sockfd; // socket file descriptor
+  const IpAddr &ip_addr;
 };
 
-class TcpSocket : public Socket {
+class [[maybe_unused]] TcpSocket : public Socket {
 public:
   [[maybe_unused]] explicit TcpSocket(IpAddr &ip_addr);
 };
 
-class UdpSocket : public Socket {
+class [[maybe_unused]] UdpSocket : public Socket {
 public:
   [[maybe_unused]] explicit UdpSocket(IpAddr &ip_addr);
 };
 
-class RawSocket : public Socket {
+class [[maybe_unused]] RawSocket : public Socket {
 public:
   [[maybe_unused]] RawSocket(IpAddr &ip_addr, int protocol);
 };

@@ -1,12 +1,11 @@
 #include "Socket.hpp"
-#include "env-settings.hpp"
 
 extern int errno;
 
-Socket::Socket(const IpAddr &ip_addr, int type, int protocol, int queue_len)
-        : ip_addr_(ip_addr) {
+Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
+        : ip_addr(ip_addr_) {
   /* Create socket for listening (client requests) */
-  sockfd = socket(ip_addr.addr_family(), type, protocol);
+  sockfd = socket(ip_addr_.addr_family(), type, protocol);
 
   if (sockfd < 0) {
 #ifndef NDEBUG
@@ -17,7 +16,7 @@ Socket::Socket(const IpAddr &ip_addr, int type, int protocol, int queue_len)
   }
 
   /* Set socket to reuse address */
-  uint8_t reuse = 1;
+  SockCallLen reuse = 1;
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0) {
 #ifndef NDEBUG
     assert(errno != 0);
@@ -28,7 +27,7 @@ Socket::Socket(const IpAddr &ip_addr, int type, int protocol, int queue_len)
 
   /* Bind address and socket together */
   SockAddrInfo info;
-  auto[sock_addr_ptr, sock_addr_len] = ip_addr.sock_addr_info(info);
+  auto[sock_addr_ptr, sock_addr_len] = ip_addr_.sock_addr_info(info);
   if (bind(sockfd, sock_addr_ptr, sock_addr_len) != 0) {
 #ifndef NDEBUG
     assert(errno != 0);
@@ -52,13 +51,22 @@ Socket::~Socket() {
 }
 
 [[noreturn]] void Socket::loop() {
+  cout << "Beep!\n";
   for (;;) {
     /* Do TCP handshake with client */
 //    int client_sockfd;
-//    switch (ip_addr)= accept4(sockfd,
-//                              (struct sockaddr *) &client_addr,
-//                              &client_addr_len,
-//                              SOCK_NONBLOCK | SOCK_CLOEXEC);
+//    switch (ip_addr.addr_type_) {
+//      case IpAddrType::IpAddrV4:
+//        client_sockfd = accept4(
+//                sockfd,
+//                (struct sockaddr *) &client_addr,
+//                &client_addr_len,
+//                SOCK_NONBLOCK | SOCK_CLOEXEC
+//        );
+//        return reinterpret_cast<const IpAddrV4 *>(this)->sock_addr_in.sin_family;
+//      case IpAddrType::IpAddrV6:
+//    }
+//
 //    if (client_sockfd == -1) {
 //      perror("accept()");
 //      close(listen_sock_fd);
