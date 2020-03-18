@@ -1,4 +1,6 @@
 #include "x-server/env-settings.hpp"
+#include "x-server/IpAddr.hpp"
+#include "x-server/Socket.hpp"
 
 auto init_env() {
 #ifndef NDEBUG
@@ -12,6 +14,7 @@ auto init_env() {
 int main(int argc, char *argv[]) {
   init_env();
 
-
-  return 0;
+  IpAddrV4  ip("127.0.0.10", 6006);
+  TcpSocket tcp(ip);
+  tcp.loop();
 }

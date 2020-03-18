@@ -29,8 +29,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 -Wpointer-arith \
 -Wshadow \
 -Wsign-conversion \
--Wswitch-default \
--Wswitch-enum \
 -Wundef \
 -Wunused \
 -Wuseless-cast \

@@ -5,27 +5,29 @@
 
 class Socket {
 public:
-  void loop();
+  [[noreturn]] void loop();
 
 protected:
   Socket(const IpAddr &ip_addr, int type, int protocol, int queue_len = 16);
+
   ~Socket();
 
 private:
   int sockfd; // socket file descriptor
+  const IpAddr &ip_addr_;
 };
 
-class TcpSocket : Socket {
+class TcpSocket : public Socket {
 public:
   [[maybe_unused]] explicit TcpSocket(IpAddr &ip_addr);
 };
 
-class UdpSocket : Socket {
+class UdpSocket : public Socket {
 public:
   [[maybe_unused]] explicit UdpSocket(IpAddr &ip_addr);
 };
 
-class RawSocket : Socket {
+class RawSocket : public Socket {
 public:
   [[maybe_unused]] RawSocket(IpAddr &ip_addr, int protocol);
 };

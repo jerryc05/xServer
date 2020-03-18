@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-using std::cout;
+using std::cout, std::cerr;
 
 const int ERR_CODE_EPOLL_CREATE1_ERROR      = 1;
 const int ERR_CODE_CREATE_SOCKET_ERROR      = 2;

@@ -24,40 +24,35 @@ using SockAddrLen = socklen_t;
 using SockAddrInfo = Tuple<const SockAddr *, SockAddrLen>;
 #endif
 
+enum struct IpAddrType : char {
+  IpAddrV4, IpAddrV6
+};
+
 class IpAddr {
 public:
-  [[nodiscard]] inline virtual SockAddrFamily addr_family() const = 0;
+  [[nodiscard]] SockAddrFamily addr_family() const;
 
-  [[nodiscard]] inline virtual SockAddrInfo &sock_addr_info(SockAddrInfo &info) const = 0;
-
-  virtual ~IpAddr();
+  [[nodiscard]] SockAddrInfo &sock_addr_info(SockAddrInfo &info) const;
 
 protected:
-  explicit IpAddr();
-};
-
-class [[maybe_unused]] IpAddrV4 : IpAddr {
-public:
-  [[maybe_unused]] explicit IpAddrV4(const char *ip_addr_v4, uint16_t port_num);
-
-  [[nodiscard]] inline SockAddrFamily addr_family() const override;
-
-  [[nodiscard]] inline SockAddrInfo &sock_addr_info(SockAddrInfo &info) const override;
+  explicit IpAddr(IpAddrType addr_type);
 
 private:
+  IpAddrType addr_type_;
+};
+
+class [[maybe_unused]] IpAddrV4 : public IpAddr {
+public:
   const SockAddrIn sock_addr_in{};
+
+  [[maybe_unused]] explicit IpAddrV4(const char *ip_addr_v4, uint16_t port_num);
 };
 
-class [[maybe_unused]] IpAddrV6 : IpAddr {
+class [[maybe_unused]] IpAddrV6 : public IpAddr {
 public:
-  [[maybe_unused]] explicit IpAddrV6(const char *ip_addr_v6, uint16_t port_num);
-
-  [[nodiscard]] inline SockAddrFamily addr_family() const override;
-
-  [[nodiscard]] inline SockAddrInfo &sock_addr_info(SockAddrInfo &info) const override;
-
-private:
   const SockAddrIn6 sock_addr_in6{};
+
+  [[maybe_unused]] explicit IpAddrV6(const char *ip_addr_v6, uint16_t port_num);
 };
 
 #endif // XSERVER_IPADDR_HPP
