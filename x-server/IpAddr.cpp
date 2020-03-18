@@ -40,8 +40,8 @@ SockAddrInfo &IpAddr::sock_addr_info(SockAddrInfo &info) const {
 
   // address to network byte order
   if (inet_aton(ip_addr_v4, &(ptr->sin_addr)) == 0) {
-    cerr << "ERR!  inet_aton() parsing address to network byte order failed!";
-    exit(ERR_CODE_INET_ATON_FAILED);
+    log_e() << "inet_aton() parsing address to network byte order failed!";
+    exit(ERR_CODE_INET_ATON_ERROR);
   }
 }
 
@@ -55,7 +55,7 @@ SockAddrInfo &IpAddr::sock_addr_info(SockAddrInfo &info) const {
 
   // address to network byte order
   if (inet_pton(AF_INET6, ip_addr_v6, &(ptr->sin6_addr)) == 0) {
-    cerr << "ERR!  inet_aton() parsing address to network byte order failed!";
-    exit(ERR_CODE_INET_ATON_FAILED);
+    log_e() << "inet_aton() parsing address to network byte order failed!";
+    exit(ERR_CODE_INET_ATON_ERROR);
   }
 }

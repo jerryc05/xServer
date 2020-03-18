@@ -5,7 +5,7 @@
 
 class Socket {
 public:
-  [[noreturn]] void loop();
+  [[noreturn]] void loop() const;
 
 protected:
   Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len = 16);
