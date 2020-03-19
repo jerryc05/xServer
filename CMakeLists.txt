@@ -15,7 +15,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
 -std=gnu++2a \
 -ftrapv \
--Waggregate-return \
 -Wall \
 -Wcast-align \
 -Wconversion \

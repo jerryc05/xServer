@@ -4,10 +4,6 @@
 #include "env-settings.hpp"
 #include <cassert>
 #include <cstring>
-#include <tuple>
-
-using std::get;
-template<typename T1, typename T2> using Tuple = std::tuple<T1, T2>;
 
 #ifdef unix
 
@@ -34,7 +30,7 @@ public:
 
   [[nodiscard]] SockAddrFamily addr_family() const;
 
-  [[nodiscard]] SockAddrInfo &sock_addr_info(SockAddrInfo &info) const;
+  [[nodiscard]] SockAddrInfo sock_addr_info() const;
 
 protected:
   explicit IpAddr(IpAddrType addr_type_);

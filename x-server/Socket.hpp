@@ -2,34 +2,38 @@
 #define XSERVER_SOCKET_HPP
 
 #include "IpAddr.hpp"
+#include "Epoll.hpp"
 
 class Socket {
 public:
-  [[noreturn]] void loop() const;
+  [[noreturn]] void loop();
 
 protected:
-  Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len = 16);
+  /* Number of sockets to listen (aka backlog) is configurable via macro LISTEN_BACKLOG */
+  Socket(const IpAddr &ip_addr_, int type, int protocol);
 
   ~Socket();
 
 private:
-  int          sockfd; // socket file descriptor
-  const IpAddr &ip_addr;
+  Optional<Epoll> epoll_opt{};
+  const IpAddr    ip_addr;
+  /* socket file descriptor */
+  int             sockfd;
 };
 
 class [[maybe_unused]] TcpSocket : public Socket {
 public:
-  [[maybe_unused]] explicit TcpSocket(IpAddr &ip_addr);
+  [[maybe_unused]] explicit TcpSocket(IpAddr &ip_addr_);
 };
 
 class [[maybe_unused]] UdpSocket : public Socket {
 public:
-  [[maybe_unused]] explicit UdpSocket(IpAddr &ip_addr);
+  [[maybe_unused]] explicit UdpSocket(IpAddr &ip_addr_);
 };
 
 class [[maybe_unused]] RawSocket : public Socket {
 public:
-  [[maybe_unused]] RawSocket(IpAddr &ip_addr, int protocol);
+  [[maybe_unused]] RawSocket(IpAddr &ip_addr_, int protocol);
 };
 
 #endif // XSERVER_SOCKET_HPP

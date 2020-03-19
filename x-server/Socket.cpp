@@ -4,7 +4,7 @@ using Byte = std::byte;
 
 extern int errno;
 
-Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
+Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
         : ip_addr(ip_addr_) {
   /* Create socket for listening (client requests) */  {
     sockfd = socket(ip_addr_.addr_family(), type, protocol);
@@ -13,7 +13,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
       assert(errno != 0);
 #endif
       log_e() << "ERR!  " << strerror(errno) << '\n';
-      exit(ERR_CODE_CREATE_SOCKET_ERROR);
+      exit(ERR_CODE_CREATE_SOCKET);
     }
     log_d() << "Socket created w/ file descriptor: " << sockfd << '\n';
   }
@@ -25,20 +25,19 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_SET_SOCK_OPT_REUSE_ERROR);
+      exit(ERR_CODE_SET_SOCK_OPT_REUSE);
     }
     log_d() << "Socket set to reuse address!\n";
   }
 
   /* Bind address and socket together */ {
-    SockAddrInfo info;
-    auto[sock_addr_ptr, sock_addr_len] = ip_addr_.sock_addr_info(info);
+    auto[sock_addr_ptr, sock_addr_len] = ip_addr_.sock_addr_info();
     if (bind(sockfd, sock_addr_ptr, sock_addr_len) != 0) {
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_BIND_SOCK_ERROR);
+      exit(ERR_CODE_BIND_SOCK);
     }
     log_i() << "Socket bound to address: ";
 #ifndef NDEBUG
@@ -54,7 +53,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
         if (addr == nullptr) {
           assert(errno != 0);
           log_e() << strerror(errno) << '\n';
-          exit(ERR_CODE_INET_NTOP_ERROR);
+          exit(ERR_CODE_REACH_END_OF_NON_VOID_FUNC);
         }
         cout << addr;
         break;
@@ -70,7 +69,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
         if (addr == nullptr) {
           assert(errno != 0);
           log_e() << strerror(errno) << '\n';
-          exit(ERR_CODE_INET_NTOP_ERROR);
+          exit(ERR_CODE_INET_NTOP);
         }
         cout << addr;
         break;
@@ -83,13 +82,17 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol, int queue_len)
   }
 
   /* Create listening queue (client requests) */{
-    if (listen(sockfd, queue_len) != 0) {
+    if (listen(sockfd, LISTEN_BACKLOG) != 0) {
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_LISTEN_SOCK_ERROR);
+      exit(ERR_CODE_LISTEN_SOCK);
     }
+  }
+
+  /* Initialize epoll event */ {
+    epoll_opt.emplace(Epoll(sockfd));
   }
 }
 
@@ -97,10 +100,13 @@ Socket::~Socket() {
   close(sockfd);
 }
 
-[[noreturn]] void Socket::loop() const {
+[[noreturn]] void Socket::loop() {
 #ifndef NDEBUG
   log_d() << "Socket::loop() Beep!\n";
+  assert(epoll_opt.has_value());
 #endif
+
+  auto[ready_count, event_array_ptr] = epoll_opt->ready_count();
 
   switch (ip_addr.addr_type) {
     case IpAddrType::IpAddrV4: {
@@ -177,16 +183,19 @@ Socket::~Socket() {
     }
 
     case IpAddrType::IpAddrV6: {
+      for (;;) {}
     }
   }
+  log_e() << "Socket::loop():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
+  exit(ERR_CODE_REACH_END_OF_NON_VOID_FUNC);
 }
 
 
-[[maybe_unused]] TcpSocket::TcpSocket(IpAddr &ip_addr)
-        : Socket(ip_addr, SOCK_STREAM, 0) {}
+[[maybe_unused]] TcpSocket::TcpSocket(IpAddr &ip_addr_)
+        : Socket(ip_addr_, SOCK_STREAM, 0) {}
 
-[[maybe_unused]] UdpSocket::UdpSocket(IpAddr &ip_addr)
-        : Socket(ip_addr, SOCK_DGRAM, 0) {}
+[[maybe_unused]] UdpSocket::UdpSocket(IpAddr &ip_addr_)
+        : Socket(ip_addr_, SOCK_DGRAM, 0) {}
 
-[[maybe_unused]] RawSocket::RawSocket(IpAddr &ip_addr, int protocol)
-        : Socket(ip_addr, SOCK_RAW, protocol) {}
+[[maybe_unused]] RawSocket::RawSocket(IpAddr &ip_addr_, int protocol)
+        : Socket(ip_addr_, SOCK_RAW, protocol) {}
