@@ -46,10 +46,8 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
         char       client_addr_str[INET_ADDRSTRLEN];
         const char *addr = inet_ntop(
                 AF_INET,
-                &(reinterpret_cast<const IpAddrV4 *>(
-                        &ip_addr_)->sock_addr_in.sin_addr),
-                client_addr_str,
-                sizeof(client_addr_str));
+                &(reinterpret_cast<const IpAddrV4 *>(&ip_addr_)->sock_addr_in.sin_addr),
+                client_addr_str, sizeof(client_addr_str));
         if (addr == nullptr) {
           assert(errno != 0);
           log_e() << strerror(errno) << '\n';
@@ -115,10 +113,10 @@ Socket::~Socket() {
         int        client_sockfd;
 
         /* Do TCP handshake with client */ {
-          SockCallLen clientAddrLen = sizeof(client_addr);
+          SockCallLen client_addr_len = sizeof(client_addr);
 
           client_sockfd = accept4(sockfd, reinterpret_cast<SockAddr *>(&client_addr),
-                                  &clientAddrLen, SOCK_NONBLOCK | SOCK_CLOEXEC);
+                                  &client_addr_len, SOCK_NONBLOCK | SOCK_CLOEXEC);
 
           if (client_sockfd < 0) {
 #ifndef NDEBUG
@@ -131,11 +129,11 @@ Socket::~Socket() {
         }
 
         /* Display IP Address */ {
-          char clientAddrStr[INET_ADDRSTRLEN];
+          char client_addr_str[INET_ADDRSTRLEN];
           inet_ntop(AF_INET, &(client_addr.sin_addr),
-                    clientAddrStr, sizeof(clientAddrStr));
+                    client_addr_str, sizeof(client_addr_str));
           log_i() << "New connection from: "
-                  << clientAddrStr << ':' << ntohs(client_addr.sin_port) << '\n';
+                  << client_addr_str << ':' << ntohs(client_addr.sin_port) << '\n';
         }
 
         /* Wait for data from client */ {

@@ -38,7 +38,11 @@ void Epoll::initialize(int sockfd_, int cloexec_flag) {
 
 
 Pair<uint, EpollEvent *> Epoll::ready_count() {
-  auto count = epoll_wait(epfd, epoll_arr, sizeof(epoll_arr), -1);
+  auto count = epoll_wait(
+          epfd, 
+          epoll_arr,
+          sizeof(epoll_arr) / sizeof(*epoll_arr),
+          -1);
   if (count < 0) {
 #ifndef NDEBUG
     assert(errno != 0);

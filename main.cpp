@@ -11,10 +11,6 @@ inline auto init_env() {
 #endif
 }
 
-enum  X{
-  Epoll
-};
-
 int main(int argc, char *argv[]) {
   init_env();
 
