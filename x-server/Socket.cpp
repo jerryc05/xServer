@@ -81,7 +81,8 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 #endif
   }
 
-  /* Create listening queue (client requests) */{
+  /* Create listening queue (client requests) */ {
+    // LISTEN_BACKLOG is configurable via macro LISTEN_BACKLOG_OVERRIDE
     if (listen(sockfd, LISTEN_BACKLOG) != 0) {
 #ifndef NDEBUG
       assert(errno != 0);
@@ -92,7 +93,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
   }
 
   /* Initialize epoll event */ {
-    epoll_opt.emplace(Epoll(sockfd));
+    epoll = Epoll(sockfd);
   }
 }
 
@@ -103,10 +104,9 @@ Socket::~Socket() {
 [[noreturn]] void Socket::loop() {
 #ifndef NDEBUG
   log_d() << "Socket::loop() Beep!\n";
-  assert(epoll_opt.has_value());
 #endif
 
-  auto[ready_count, event_array_ptr] = epoll_opt->ready_count();
+  auto[ready_count, event_array_ptr] = epoll.ready_count();
 
   switch (ip_addr.addr_type) {
     case IpAddrType::IpAddrV4: {

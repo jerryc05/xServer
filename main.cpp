@@ -2,7 +2,7 @@
 #include "x-server/IpAddr.hpp"
 #include "x-server/Socket.hpp"
 
-auto init_env() {
+inline auto init_env() {
 #ifndef NDEBUG
   // debug mode
 #else
@@ -10,6 +10,10 @@ auto init_env() {
   std::ios::sync_with_stdio(false);
 #endif
 }
+
+enum  X{
+  Epoll
+};
 
 int main(int argc, char *argv[]) {
   init_env();

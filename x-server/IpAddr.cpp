@@ -13,17 +13,20 @@ SockAddrFamily IpAddr::addr_family() const {
   exit(ERR_CODE_REACH_END_OF_NON_VOID_FUNC);
 }
 
-SockAddrInfo IpAddr::sock_addr_info() const {
+Pair<const SockAddr *, SockCallLen> IpAddr::sock_addr_info() const {
   switch (addr_type) {
     case IpAddrType::IpAddrV4: {
       auto ptr = reinterpret_cast<const IpAddrV4 *>(this);
-      return make_tuple(reinterpret_cast<const SockAddr *>(&ptr->sock_addr_in),
-                        static_cast<SockCallLen >(sizeof(ptr->sock_addr_in)));
+      return {
+              reinterpret_cast<const SockAddr *>(&ptr->sock_addr_in),
+              static_cast<SockCallLen >(sizeof(ptr->sock_addr_in))
+      };
     }
     case IpAddrType::IpAddrV6: {
       auto ptr = reinterpret_cast<const IpAddrV6 *>(this);
-      return make_tuple(reinterpret_cast<const SockAddr *>(&ptr->sock_addr_in6),
-                        static_cast<SockCallLen >(sizeof(ptr->sock_addr_in6)));
+      return {
+              reinterpret_cast<const SockAddr *>(&ptr->sock_addr_in6),
+              static_cast<SockCallLen >(sizeof(ptr->sock_addr_in6))};
     }
   }
   log_e() << "IpAddr::sock_addr_info():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
@@ -31,7 +34,7 @@ SockAddrInfo IpAddr::sock_addr_info() const {
 }
 
 [[maybe_unused]] IpAddrV4::IpAddrV4(const char *ip_addr_v4, uint16_t port_num)
-        : IpAddr(IpAddrType::IpAddrV4) {
+        : IpAddr(IpAddrType::IpAddrV4), sock_addr_in() {
   auto ptr = const_cast<SockAddrIn *>(&sock_addr_in);
 
   ptr->sin_family = AF_INET;
@@ -46,7 +49,7 @@ SockAddrInfo IpAddr::sock_addr_info() const {
 }
 
 [[maybe_unused]] IpAddrV6::IpAddrV6(const char *ip_addr_v6, uint16_t port_num)
-        : IpAddr(IpAddrType::IpAddrV6) {
+        : IpAddr(IpAddrType::IpAddrV6), sock_addr_in6() {
   auto ptr = const_cast<SockAddrIn6 *>(&sock_addr_in6);
 
   ptr->sin6_family = AF_INET6;

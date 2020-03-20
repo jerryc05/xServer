@@ -15,10 +15,10 @@ protected:
   ~Socket();
 
 private:
-  Optional<Epoll> epoll_opt{};
-  const IpAddr    ip_addr;
+  const IpAddr ip_addr;
+  Epoll  epoll;
   /* socket file descriptor */
-  int             sockfd;
+  int          sockfd;
 };
 
 class [[maybe_unused]] TcpSocket : public Socket {

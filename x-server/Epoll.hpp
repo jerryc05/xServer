@@ -16,16 +16,20 @@ using EpollEvent = epoll_event;
 class Epoll {
 public:
   explicit Epoll(int sockfd, int cloexec_flag = EPOLL_CLOEXEC);
+  /* Placeholder constructor, do not use it unless you have to */
+  Epoll();
+  /* Make this instance (created by the dummy constructor) usable */
+  void initialize(int sockfd, int cloexec_flag = EPOLL_CLOEXEC);
 
-  [[nodiscard]] Tuple<uint, EpollEvent *> ready_count();
+  [[nodiscard]] Pair<uint, EpollEvent *> ready_count();
 
 private:
   /* Epoll file descriptor */
   int        epfd;
   /* Socket file descriptor */
-  const int  sockfd;
-  /* Size is configurable via macro MAX_EPOLL_EVENT_COUNT */
-  EpollEvent epoll_arr[MAX_EPOLL_EVENT_COUNT]{};
+  int        sockfd;
+  /* Size is configurable via macro MAX_EPOLL_EVENT_COUNT_OVERRIDE */
+  EpollEvent epoll_arr[MAX_EPOLL_EVENT_COUNT];
 };
 
 #endif // XSERVER_EPOLL_HPP

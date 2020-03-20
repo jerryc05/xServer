@@ -2,7 +2,13 @@
 
 extern int errno;
 
-Epoll::Epoll(int sockfd_, int cloexec_flag) : sockfd(sockfd_) {
+Epoll::Epoll() : epfd(-1), sockfd(-1), epoll_arr() {}
+
+Epoll::Epoll(int sockfd_, int cloexec_flag) : epfd(-1), sockfd(sockfd_), epoll_arr() {
+  initialize(sockfd_, cloexec_flag);
+}
+
+void Epoll::initialize(int sockfd_, int cloexec_flag) {
   /* Create epoll file descriptor */ {
     epfd = epoll_create1(cloexec_flag);
     if (epfd < 0) {
@@ -27,9 +33,11 @@ Epoll::Epoll(int sockfd_, int cloexec_flag) : sockfd(sockfd_) {
       exit(ERR_CODE_EPOLL_CTL_ADD);
     }
   }
+
 }
 
-Tuple<uint, EpollEvent *> Epoll::ready_count()  {
+
+Pair<uint, EpollEvent *> Epoll::ready_count() {
   auto count = epoll_wait(epfd, epoll_arr, sizeof(epoll_arr), -1);
   if (count < 0) {
 #ifndef NDEBUG
@@ -38,5 +46,5 @@ Tuple<uint, EpollEvent *> Epoll::ready_count()  {
     log_e() << strerror(errno) << '\n';
     exit(ERR_CODE_EPOLL_WAIT);
   }
-  return make_tuple(static_cast<uint>(count), epoll_arr);
+  return {static_cast<uint>(count), epoll_arr};
 }

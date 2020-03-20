@@ -17,7 +17,6 @@ using SockAddr = sockaddr;
 using SockAddrIn = sockaddr_in;
 using SockAddrIn6 = sockaddr_in6;
 using SockCallLen = socklen_t;
-using SockAddrInfo = Tuple<const SockAddr *, SockCallLen>;
 #endif
 
 enum struct IpAddrType : char {
@@ -30,7 +29,7 @@ public:
 
   [[nodiscard]] SockAddrFamily addr_family() const;
 
-  [[nodiscard]] SockAddrInfo sock_addr_info() const;
+  [[nodiscard]] Pair<const SockAddr *, SockCallLen> sock_addr_info() const;
 
 protected:
   explicit IpAddr(IpAddrType addr_type_);
@@ -38,14 +37,14 @@ protected:
 
 class [[maybe_unused]] IpAddrV4 : public IpAddr {
 public:
-  const SockAddrIn sock_addr_in{};
+  const SockAddrIn sock_addr_in;
 
   [[maybe_unused]] explicit IpAddrV4(const char *ip_addr_v4, uint16_t port_num);
 };
 
 class [[maybe_unused]] IpAddrV6 : public IpAddr {
 public:
-  const SockAddrIn6 sock_addr_in6{};
+  const SockAddrIn6 sock_addr_in6;
 
   [[maybe_unused]] explicit IpAddrV6(const char *ip_addr_v6, uint16_t port_num);
 };
