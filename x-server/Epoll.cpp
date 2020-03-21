@@ -1,17 +1,14 @@
 #include "Epoll.hpp"
+#include <cassert>
+#include <cstring>
 
 extern int errno;
 
-Epoll::Epoll() : epfd(-1), sockfd(-1), epoll_arr() {}
+//Epoll::Epoll() : epfd(-1), sockfd(-1), epoll_arr() {}
 
 [[maybe_unused]] Epoll::Epoll(int sockfd_, int cloexec_flag)
-        : epfd(-1), sockfd(sockfd_), epoll_arr() {
-  initialize(sockfd_, cloexec_flag);
-}
-
-void Epoll::initialize(int sockfd_, int cloexec_flag) {
-  /* Create epoll file descriptor */ {
-    epfd = epoll_create1(cloexec_flag);
+        : epfd(epoll_create1(cloexec_flag)), sockfd(sockfd_), epoll_arr() {
+  /* Verify epoll file descriptor */ {
     if (epfd < 0) {
 #ifndef NDEBUG
       assert(errno != 0);
@@ -20,6 +17,18 @@ void Epoll::initialize(int sockfd_, int cloexec_flag) {
       exit(ERR_CODE_EPOLL_CREATE1);
     }
     log_d() << "Epoll created w/ file descriptor: " << epfd << '\n';
+  }
+
+  /* Verify socket file descriptor */ {
+    if (sockfd < 0) {
+#ifndef NDEBUG
+      assert(errno != 0);
+#endif
+      log_e() << "Epoll::Epoll() got invalid sockfd: " << sockfd_ << "\n\t"
+              << strerror(errno) << '\n';
+      exit(ERR_CODE_EPOLL_GOT_INVALID_SOCKFD);
+    }
+    log_d() << "Epoll created w/ socket file descriptor: " << sockfd << '\n';
   }
 
   /* Register epoll event */ {

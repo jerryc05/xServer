@@ -16,9 +16,9 @@ protected:
 
 private:
   const IpAddr ip_addr;
-  Epoll  epoll;
   /* socket file descriptor */
   int          sockfd;
+  Epoll  epoll;
 };
 
 class [[maybe_unused]] TcpSocket : public Socket {

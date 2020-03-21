@@ -10,18 +10,18 @@ using EpollEvent = epoll_event;
 #endif
 
 #include "env-settings.hpp"
-#include <cassert>
-#include <cstring>
+
+constexpr int DEFAULT_CLOEXEC = EPOLL_CLOEXEC;
 
 class Epoll {
 public:
-  [[maybe_unused]] explicit Epoll(int sockfd, int cloexec_flag = EPOLL_CLOEXEC);
+  [[maybe_unused]] explicit Epoll(int sockfd, int cloexec_flag = DEFAULT_CLOEXEC);
 
-  /* Placeholder constructor, do not use it unless you have to */
-  Epoll();
-
-  /* Make this instance (created by the dummy constructor) usable */
-  void initialize(int sockfd, int cloexec_flag = EPOLL_CLOEXEC);
+//  /* Placeholder constructor, do not use it unless you have to */
+//  Epoll();
+//
+//  /* Make this instance (created by the dummy constructor) usable */
+//  void initialize(int sockfd, int cloexec_flag = DEFAULT_CLOEXEC);
 
   [[nodiscard]] Pair<uint, EpollEvent *> ready_count();
 

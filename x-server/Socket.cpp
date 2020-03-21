@@ -5,9 +5,10 @@ using Byte = std::byte;
 extern int errno;
 
 Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
-        : ip_addr(ip_addr_) {
-  /* Create socket for listening (client requests) */  {
-    sockfd = socket(ip_addr_.addr_family(), type, protocol);
+        : ip_addr(ip_addr_),
+          sockfd(socket(ip_addr_.addr_family(), type, protocol)),
+          epoll(sockfd) {
+  /* Verify socket file descriptor (for client requests) */  {
     if (sockfd < 0) {
 #ifndef NDEBUG
       assert(errno != 0);
@@ -88,10 +89,6 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       log_e() << strerror(errno) << '\n';
       exit(ERR_CODE_LISTEN_SOCK);
     }
-  }
-
-  /* Initialize epoll event */ {
-    epoll.initialize(sockfd);
   }
 }
 

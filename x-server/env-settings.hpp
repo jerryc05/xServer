@@ -29,7 +29,8 @@ constexpr uint8_t ERR_CODE_EPOLL_CTL_ADD              = 7;
 constexpr uint8_t ERR_CODE_INET_NTOP                  = 8;
 constexpr uint8_t ERR_CODE_EPOLL_WAIT                 = 9;
 constexpr uint8_t ERR_CODE_REACH_END_OF_NON_VOID_FUNC = 10;
-constexpr auto    ERR_STR_REACH_END_OF_NON_VOID_FUNC  =
+constexpr auto    ERR_STR_REACH_END_OF_NON_VOID_FUNC =
                           "Control reaches end of non-void function\n";
+constexpr uint8_t ERR_CODE_EPOLL_GOT_INVALID_SOCKFD  = 11;
 
 #endif // XSERVER_ENV_SETTINGS_HPP
