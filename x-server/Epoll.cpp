@@ -12,7 +12,7 @@ extern int errno;
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_EPOLL_CREATE1);
+      throw RuntimeError(ERR_STR_EPOLL_CREATE1);
     }
     log_d() << "Epoll created w/ file descriptor: " << epfd << '\n';
   }
@@ -24,7 +24,7 @@ extern int errno;
 #endif
       log_e() << "Epoll::Epoll() got invalid sockfd: " << sockfd_ << "\n\t"
               << strerror(errno) << '\n';
-      exit(ERR_CODE_EPOLL_GOT_INVALID_SOCKFD);
+      throw RuntimeError(ERR_STR_EPOLL_GOT_INVALID_SOCKFD);
     }
     log_d() << "Epoll created w/ socket file descriptor: " << sockfd << '\n';
   }
@@ -38,14 +38,14 @@ extern int errno;
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_EPOLL_CTL_ADD);
+      throw RuntimeError(ERR_STR_EPOLL_CTL_ADD);
     }
   }
 }
 
 Pair<uint, EpollEvent *> Epoll::ready_count() {
   static_assert(MAX_EPOLL_EVENT_COUNT == sizeof(epoll_arr) / sizeof(*epoll_arr),
-          "Epoll::ready_count() epoll_arr size(s) does not match\n");
+                "Epoll::ready_count() epoll_arr size(s) does not match\n");
   auto count = epoll_wait(
           epfd,
           epoll_arr,
@@ -56,7 +56,7 @@ Pair<uint, EpollEvent *> Epoll::ready_count() {
     assert(errno != 0);
 #endif
     log_e() << strerror(errno) << '\n';
-    exit(ERR_CODE_EPOLL_WAIT);
+    throw RuntimeError(ERR_STR_EPOLL_WAIT);
   }
   return {static_cast<uint>(count), epoll_arr};
 }

@@ -14,7 +14,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       assert(errno != 0);
 #endif
       log_e() << "ERR!  " << strerror(errno) << '\n';
-      exit(ERR_CODE_CREATE_SOCKET);
+      throw RuntimeError(ERR_STR_CREATE_SOCKET);
     }
     log_d() << "Socket created w/ file descriptor: " << sockfd << '\n';
   }
@@ -26,7 +26,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_SET_SOCK_OPT_REUSE);
+      throw RuntimeError(ERR_STR_SET_SOCK_OPT_REUSE);
     }
     log_d() << "Socket set to reuse address!\n";
   }
@@ -38,7 +38,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_BIND_SOCK);
+      throw RuntimeError(ERR_STR_BIND_SOCK);
     }
     log_i() << "Socket bound to address: ";
 #ifndef NDEBUG
@@ -52,7 +52,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
         if (addr == nullptr) {
           assert(errno != 0);
           log_e() << strerror(errno) << '\n';
-          exit(ERR_CODE_REACH_END_OF_NON_VOID_FUNC);
+          throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
         }
         cout << addr;
         break;
@@ -68,7 +68,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
         if (addr == nullptr) {
           assert(errno != 0);
           log_e() << strerror(errno) << '\n';
-          exit(ERR_CODE_INET_NTOP);
+          throw RuntimeError(ERR_STR_INET_NTOP);
         }
         cout << addr;
         break;
@@ -87,7 +87,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
-      exit(ERR_CODE_LISTEN_SOCK);
+      throw RuntimeError(ERR_STR_LISTEN_SOCK);
     }
   }
 }
@@ -182,13 +182,13 @@ Socket::~Socket() {
       }
 
       case IpAddrType::IpAddrV6: {
-        log_e()<<"Not implemented\n";
-        exit(-1);
+        log_e() << "Not implemented\n";
+        throw RuntimeError("Not implemented");
       }
     }
   }
   log_e() << "Socket::loop():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
-  exit(ERR_CODE_REACH_END_OF_NON_VOID_FUNC);
+  throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
 }
 
 
