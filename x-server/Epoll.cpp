@@ -44,10 +44,12 @@ extern int errno;
 }
 
 Pair<uint, EpollEvent *> Epoll::ready_count() {
+  static_assert(MAX_EPOLL_EVENT_COUNT == sizeof(epoll_arr) / sizeof(*epoll_arr),
+          "Epoll::ready_count() epoll_arr size(s) does not match\n");
   auto count = epoll_wait(
           epfd,
           epoll_arr,
-          sizeof(epoll_arr) / sizeof(*epoll_arr),
+          MAX_EPOLL_EVENT_COUNT,
           -1);
   if (count < 0) {
 #ifndef NDEBUG

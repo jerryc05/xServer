@@ -101,84 +101,90 @@ Socket::~Socket() {
   log_d() << "Socket::loop() Beep!\n";
 #endif
 
-  auto[ready_count, event_array_ptr] = epoll.ready_count();
+  for (;;) {
+    auto[ready_count, event_array_ptr] = epoll.ready_count();
+    if (ready_count <= 0)
+      continue;
 
-  switch (ip_addr.addr_type) {
-    case IpAddrType::IpAddrV4: {
-      for (;;) {
-        SockAddrIn client_addr;
-        int        client_sockfd;
+    switch (ip_addr.addr_type) {
+      case IpAddrType::IpAddrV4: {
+        for (decltype(ready_count) i = 0; i < ready_count; ++i) {
+          SockAddrIn client_addr;
+          int        client_sockfd;
 
-        /* Do TCP handshake with client */ {
-          SockCallLen client_addr_len = sizeof(client_addr);
+          /* TCP handshake with client */ {
+            SockCallLen client_addr_len = sizeof(client_addr);
 
-          client_sockfd = accept4(sockfd, reinterpret_cast<SockAddr *>(&client_addr),
-                                  &client_addr_len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+            client_sockfd = accept4(sockfd, reinterpret_cast<SockAddr *>(&client_addr),
+                                    &client_addr_len, SOCK_NONBLOCK | SOCK_CLOEXEC);
 
-          if (client_sockfd < 0) {
+            if (client_sockfd < 0) {
 #ifndef NDEBUG
-            assert(errno != 0);
+              assert(errno != 0);
 #endif
-            log_e() << "Socket::loop() >> IpAddrV4 >> accept4():\n\t"
-                    << strerror(errno) << '\n';
-            continue;
+              log_e() << "Socket::loop() >> IpAddrV4 >> accept4():\n\t"
+                      << strerror(errno) << '\n';
+              continue;
+            }
           }
-        }
 
-        /* Display IP Address */ {
-          char client_addr_str[INET_ADDRSTRLEN];
-          inet_ntop(AF_INET, &(client_addr.sin_addr),
-                    client_addr_str, sizeof(client_addr_str));
-          log_i() << "New connection from: "
-                  << client_addr_str << ':' << ntohs(client_addr.sin_port) << '\n';
-        }
+          /* Display IP Address */ {
+            char client_addr_str[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &(client_addr.sin_addr),
+                      client_addr_str, sizeof(client_addr_str));
+            log_i() << "New connection from: "
+                    << client_addr_str << ':' << ntohs(client_addr.sin_port) << '\n';
+          }
 
-        /* Wait for data from client */ {
-          Byte r_buf[512];
-          if (recv(client_sockfd, &r_buf, sizeof(r_buf),
-                   MSG_DONTWAIT) != 0) {
+          /* Wait for data from client */ {
+            Byte r_buf[512];
+            if (recv(client_sockfd, &r_buf, sizeof(r_buf),
+                     MSG_DONTWAIT) != 0) {
 #ifndef NDEBUG
-            assert(errno != 0);
+              assert(errno != 0);
 #endif
-            log_e() << "Socket::loop() >> IpAddrV4 >> recv():\n\t"
-                    << strerror(errno) << '\n';
-            close(client_sockfd);
-            continue;
+              log_e() << "Socket::loop() >> IpAddrV4 >> recv():\n\t"
+                      << strerror(errno) << '\n';
+              close(client_sockfd);
+              continue;
+            }
           }
-        }
 
-        /* Send response to client */ {
-          char w_buf[]{"Hello, World!"};
-          if (send(client_sockfd, &w_buf, sizeof(w_buf), MSG_DONTWAIT) != 0) {
+          /* Send response to client */ {
+            char w_buf[]{"Hello, World!"};
+            if (send(client_sockfd, &w_buf, sizeof(w_buf), MSG_DONTWAIT) != 0) {
 #ifndef NDEBUG
-            assert(errno != 0);
+              assert(errno != 0);
 #endif
-            log_e() << "Socket::loop() >> IpAddrV4 >> send():\n\t"
-                    << strerror(errno) << '\n';
-            close(client_sockfd);
-            continue;
+              log_e() << "Socket::loop() >> IpAddrV4 >> send():\n\t"
+                      << strerror(errno) << '\n';
+              close(client_sockfd);
+              continue;
+            }
           }
-        }
 
-        /* TCP teardown */ {
+          /* TCP teardown */ {
 //          auto client_sockfd_copy = client_sockfd;
 //          client_sockfd = -1;
-          if (close(client_sockfd) != 0) {
+            if (close(client_sockfd) != 0) {
 #ifndef NDEBUG
-            assert(errno != 0);
+              assert(errno != 0);
 #endif
-            log_e() << "Socket::loop() >> IpAddrV4 >> close():\n\t"
-                    << strerror(errno) << '\n';
-            continue;
+              log_e() << "Socket::loop() >> IpAddrV4 >> close():\n\t"
+                      << strerror(errno) << '\n';
+              continue;
+            }
           }
+
+          cout << ("Connection closed\n");
         }
-
-        cout << ("Connection closed\n");
+        break;
       }
-    }
 
-    case IpAddrType::IpAddrV6: {
-      for (;;) {}
+      case IpAddrType::IpAddrV6: {
+        log_e()<<"Not implemented\n";
+        exit(-1);
+      }
     }
   }
   log_e() << "Socket::loop():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
