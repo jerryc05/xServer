@@ -15,7 +15,8 @@ constexpr int DEFAULT_CLOEXEC = EPOLL_CLOEXEC;
 
 class Epoll {
 public:
-  [[maybe_unused]] explicit Epoll(int sockfd, int cloexec_flag = DEFAULT_CLOEXEC);
+  explicit Epoll(int sockfd, int cloexec_flag = DEFAULT_CLOEXEC);
+  ~Epoll();
 
   [[nodiscard]] Pair<uint, EpollEvent *> ready_count();
 

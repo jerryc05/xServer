@@ -4,7 +4,7 @@
 
 extern int errno;
 
-[[maybe_unused]] Epoll::Epoll(int sockfd_, int cloexec_flag)
+Epoll::Epoll(int sockfd_, int cloexec_flag)
         : epfd(epoll_create1(cloexec_flag)), sockfd(sockfd_), epoll_arr() {
   /* Verify epoll file descriptor */ {
     if (epfd < 0) {
@@ -14,7 +14,7 @@ extern int errno;
       log_e() << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_EPOLL_CREATE1);
     }
-    log_d() << "Epoll created w/ file descriptor: " << epfd << '\n';
+    log_d() << "Epoll file descriptor: " << epfd << '\n';
   }
 
   /* Verify socket file descriptor */ {
@@ -22,25 +22,38 @@ extern int errno;
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << "Epoll::Epoll() got invalid sockfd: " << sockfd_ << "\n\t"
+      log_e() << "Epoll::Epoll() got invalid sockfd: " << sockfd << "\n\t"
               << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_EPOLL_GOT_INVALID_SOCKFD);
     }
-    log_d() << "Epoll created w/ socket file descriptor: " << sockfd << '\n';
+    log_d() << "Epoll's socket file descriptor: " << sockfd << '\n';
   }
 
   /* Register epoll event */ {
     EpollEvent event;
     event.events  = EPOLLIN;  // available for read()
-    event.data.fd = sockfd_;
-    if (epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd_, &event) != 0) {
+    event.data.fd = sockfd;
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd, &event) != 0) {
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
       log_e() << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_EPOLL_CTL_ADD);
     }
+    log_d() << "Registered epoll (fd: " << epfd
+            << ") with socket (fd: " << sockfd << ")\n";
   }
+}
+
+Epoll::~Epoll() {
+  if (epoll_ctl(epfd, EPOLL_CTL_DEL, sockfd, nullptr) != 0) {
+#ifndef NDEBUG
+    assert(errno != 0);
+#endif
+    log_e() << strerror(errno) << '\n';
+    throw RuntimeError(ERR_STR_EPOLL_CTL_DEL);
+  }
+  log_d() << "Epoll (fd: " << epfd << ") deleted\n";
 }
 
 Pair<uint, EpollEvent *> Epoll::ready_count() {

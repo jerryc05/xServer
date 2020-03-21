@@ -16,7 +16,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       log_e() << "ERR!  " << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_CREATE_SOCKET);
     }
-    log_d() << "Socket created w/ file descriptor: " << sockfd << '\n';
+    log_d() << "Socket file descriptor: " << sockfd << '\n';
   }
 
   /* Set socket to reuse address */  {
@@ -89,11 +89,13 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       log_e() << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_LISTEN_SOCK);
     }
+    log_d() << "Socket listening with backlog: " << LISTEN_BACKLOG << '\n';
   }
 }
 
 Socket::~Socket() {
   close(sockfd);
+  log_d() << "Socket (fd: " << sockfd << ") closed\n";
 }
 
 [[noreturn]] void Socket::loop() {
@@ -138,7 +140,7 @@ Socket::~Socket() {
 
           /* Wait for data from client */ {
             Byte r_buf[512];
-            if (recv(client_sockfd, &r_buf, sizeof(r_buf),
+            if (recv(client_sockfd, r_buf, sizeof(r_buf),
                      MSG_DONTWAIT) != 0) {
 #ifndef NDEBUG
               assert(errno != 0);
