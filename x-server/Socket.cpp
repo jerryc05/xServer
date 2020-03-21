@@ -16,7 +16,9 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       log_e() << "ERR!  " << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_CREATE_SOCKET);
     }
+#ifndef NDEBUG
     log_d() << "Socket file descriptor: " << sockfd << '\n';
+#endif
   }
 
   /* Set socket to reuse address */  {
@@ -28,7 +30,9 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       log_e() << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_SET_SOCK_OPT_REUSE);
     }
+#ifndef NDEBUG
     log_d() << "Socket set to reuse address!\n";
+#endif
   }
 
   /* Bind address and socket together */ {
@@ -89,13 +93,17 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       log_e() << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_LISTEN_SOCK);
     }
-    log_d() << "Socket listening with backlog: " << LISTEN_BACKLOG << '\n';
+#ifndef NDEBUG
+    log_d() << "Socket listening with backlog: " << +LISTEN_BACKLOG << '\n';
+#endif
   }
 }
 
 Socket::~Socket() {
   close(sockfd);
+#ifndef NDEBUG
   log_d() << "Socket (fd: " << sockfd << ") closed\n";
+#endif
 }
 
 [[noreturn]] void Socket::loop() {

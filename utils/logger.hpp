@@ -9,6 +9,8 @@ using std::cout, std::cerr, std::ostream;
 
 [[maybe_unused]] ostream &log_i();
 
+#ifndef NDEBUG
 [[maybe_unused]] ostream &log_d();
+#endif
 
 #endif //XSERVER_LOGGER_HPP

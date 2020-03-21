@@ -1,6 +1,11 @@
 #include "Epoll.hpp"
-#include <cassert>
 #include <cstring>
+
+#ifndef NDEBUG
+
+#include <cassert>
+
+#endif
 
 extern int errno;
 
@@ -14,7 +19,9 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
       log_e() << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_EPOLL_CREATE1);
     }
+#ifndef NDEBUG
     log_d() << "Epoll file descriptor: " << epfd << '\n';
+#endif
   }
 
   /* Verify socket file descriptor */ {
@@ -26,7 +33,9 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
               << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_EPOLL_GOT_INVALID_SOCKFD);
     }
+#ifndef NDEBUG
     log_d() << "Epoll's socket file descriptor: " << sockfd << '\n';
+#endif
   }
 
   /* Register epoll event */ {
@@ -40,8 +49,10 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
       log_e() << strerror(errno) << '\n';
       throw RuntimeError(ERR_STR_EPOLL_CTL_ADD);
     }
+#ifndef NDEBUG
     log_d() << "Registered epoll (fd: " << epfd
             << ") with socket (fd: " << sockfd << ")\n";
+#endif
   }
 }
 
@@ -50,10 +61,12 @@ Epoll::~Epoll() {
 #ifndef NDEBUG
     assert(errno != 0);
 #endif
-    log_e() << strerror(errno) << '\n';
-    throw RuntimeError(ERR_STR_EPOLL_CTL_DEL);
+    log_e() << "Epoll::~Epoll():\n\t"
+            << strerror(errno) << '\n';
   }
+#ifndef NDEBUG
   log_d() << "Epoll (fd: " << epfd << ") deleted\n";
+#endif
 }
 
 Pair<uint, EpollEvent *> Epoll::ready_count() {
