@@ -91,7 +91,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
   }
 
   /* Initialize epoll event */ {
-    epoll = Epoll(sockfd);
+    epoll.initialize(sockfd);
   }
 }
 

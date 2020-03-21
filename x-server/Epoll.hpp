@@ -15,9 +15,11 @@ using EpollEvent = epoll_event;
 
 class Epoll {
 public:
-  explicit Epoll(int sockfd, int cloexec_flag = EPOLL_CLOEXEC);
+  [[maybe_unused]] explicit Epoll(int sockfd, int cloexec_flag = EPOLL_CLOEXEC);
+
   /* Placeholder constructor, do not use it unless you have to */
   Epoll();
+
   /* Make this instance (created by the dummy constructor) usable */
   void initialize(int sockfd, int cloexec_flag = EPOLL_CLOEXEC);
 
