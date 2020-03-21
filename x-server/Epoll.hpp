@@ -17,12 +17,6 @@ class Epoll {
 public:
   [[maybe_unused]] explicit Epoll(int sockfd, int cloexec_flag = DEFAULT_CLOEXEC);
 
-//  /* Placeholder constructor, do not use it unless you have to */
-//  Epoll();
-//
-//  /* Make this instance (created by the dummy constructor) usable */
-//  void initialize(int sockfd, int cloexec_flag = DEFAULT_CLOEXEC);
-
   [[nodiscard]] Pair<uint, EpollEvent *> ready_count();
 
 private:

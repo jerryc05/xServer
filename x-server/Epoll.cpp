@@ -4,8 +4,6 @@
 
 extern int errno;
 
-//Epoll::Epoll() : epfd(-1), sockfd(-1), epoll_arr() {}
-
 [[maybe_unused]] Epoll::Epoll(int sockfd_, int cloexec_flag)
         : epfd(epoll_create1(cloexec_flag)), sockfd(sockfd_), epoll_arr() {
   /* Verify epoll file descriptor */ {
