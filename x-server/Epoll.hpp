@@ -18,6 +18,7 @@ public:
   explicit Epoll(int sockfd, int cloexec_flag = DEFAULT_CLOEXEC);
   ~Epoll();
 
+  bool ctl_interface(int operations, int fd, EpollEvent* event_ptr) const;
   [[nodiscard]] Pair<uint, EpollEvent *> ready_count();
 
 private:

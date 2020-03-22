@@ -12,7 +12,7 @@ inline auto init_env() {
 #endif
 }
 
-int main(int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) {
   init_env();
 
   uint16_t port_num = static_cast<uint16_t>(std::stoi(argv[2]));

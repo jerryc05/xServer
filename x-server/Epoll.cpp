@@ -42,7 +42,7 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
     EpollEvent event;
     event.events  = EPOLLIN;  // available for read()
     event.data.fd = sockfd;
-    if (epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd, &event) != 0) {
+    if (!ctl_interface(EPOLL_CTL_ADD, sockfd, &event)) {
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
@@ -57,7 +57,7 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
 }
 
 Epoll::~Epoll() {
-  if (epoll_ctl(epfd, EPOLL_CTL_DEL, sockfd, nullptr) != 0) {
+  if (!ctl_interface(EPOLL_CTL_DEL, sockfd, nullptr)) {
 #ifndef NDEBUG
     assert(errno != 0);
 #endif
@@ -67,6 +67,10 @@ Epoll::~Epoll() {
 #ifndef NDEBUG
   log_d() << "Epoll (fd: " << epfd << ") deleted\n";
 #endif
+}
+
+bool Epoll::ctl_interface(int operations, int fd, EpollEvent *event_ptr) const {
+  return epoll_ctl(epfd, operations, fd, event_ptr) == 0;
 }
 
 Pair<uint, EpollEvent *> Epoll::ready_count() {
