@@ -13,14 +13,20 @@ add_executable(xServer
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     message("Adding GCC Flags...")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
--std=gnu++2a \
+-fdelete-dead-exceptions \
+-fstrict-enums \
 -ftrapv \
+-funroll-loops \
+-std=gnu++2a \
 -Wall \
 -Wcast-align \
 -Wconversion \
+-Wctor-dtor-privacy \
+-Wdelete-non-virtual-dtor \
+-Wdeprecated-copy \
+-Wdouble-promotion \
 -Wduplicated-branches \
 -Wduplicated-cond \
--Wdouble-promotion \
 -Wextra \
 -Wfloat-equal \
 -Winit-self \
@@ -37,16 +43,20 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 -Wundef \
 -Wunused \
 -Wuseless-cast \
--Wwrite-strings")
+-Wwrite-strings \
+")
 endif ()
 message("")
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     message("CMAKE IN DEBUG MODE")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 elseif (CMAKE_BUILD_TYPE MATCHES "Release")
     message("CMAKE IN RELEASE MODE")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast")
+    if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s")
+    endif ()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -fexpensive-optimizations -march=native")
 endif ()
 message("")
 
