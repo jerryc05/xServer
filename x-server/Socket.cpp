@@ -45,7 +45,6 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       throw RuntimeError(ERR_STR_BIND_SOCK);
     }
     log_i() << "Socket bound to address: ";
-#ifndef NDEBUG
     switch (ip_addr_.addr_type) {
       case IpAddrType::IpAddrV4: {
         char       client_addr_str[INET_ADDRSTRLEN];
@@ -79,9 +78,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
       }
     }
     cout << '\n';
-#else
-    cout << "<omitted>\n";
-#endif
+    cout.flush();
   }
 
   /* Create listening queue (client requests) */ {
@@ -200,7 +197,6 @@ Socket::~Socket() {
   log_e() << "Socket::loop():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
   throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
 }
-
 
 [[maybe_unused]] TcpSocket::TcpSocket(IpAddr &ip_addr_)
         : Socket(ip_addr_, SOCK_STREAM, 0) {}

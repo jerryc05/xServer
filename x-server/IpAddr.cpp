@@ -2,7 +2,7 @@
 
 IpAddr::IpAddr(IpAddrType addr_type_) : addr_type(addr_type_) {}
 
-SockAddrFamily IpAddr::addr_family() const {
+const SockAddrFamily &IpAddr::addr_family() const {
   switch (addr_type) {
     case IpAddrType::IpAddrV4:
       return reinterpret_cast<const IpAddrV4 *>(this)->sock_addr_in.sin_family;
@@ -46,6 +46,9 @@ Pair<const SockAddr *, SockCallLen> IpAddr::sock_addr_info() const {
     log_e() << "IpAddrV4::IpAddrV4() >> inet_aton()\n";
     throw RuntimeError(ERR_STR_INET_ATON);
   }
+#ifndef NDEBUG
+  log_d() << "IPv4 constructed: " << ip_addr_v4 << '\n';
+#endif
 }
 
 [[maybe_unused]] IpAddrV6::IpAddrV6(const char *ip_addr_v6, uint16_t port_num)
@@ -61,4 +64,7 @@ Pair<const SockAddr *, SockCallLen> IpAddr::sock_addr_info() const {
     log_e() << "IpAddrV6::IpAddrV6() >> inet_aton()\n";
     throw RuntimeError(ERR_STR_INET_ATON);
   }
+#ifndef NDEBUG
+  log_d() << "IPv6 constructed: " << ip_addr_v6 << '\n';
+#endif
 }

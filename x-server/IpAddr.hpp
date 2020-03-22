@@ -27,7 +27,7 @@ class IpAddr {
 public:
   const IpAddrType addr_type;
 
-  [[nodiscard]] SockAddrFamily addr_family() const;
+  [[nodiscard]] const SockAddrFamily &addr_family() const;
 
   [[nodiscard]] Pair<const SockAddr *, SockCallLen> sock_addr_info() const;
 
