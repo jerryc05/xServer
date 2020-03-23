@@ -9,14 +9,12 @@ using OutStream = std::ostream;
 class BaseLogger {
 public:
   template<typename T>
-  OutStream &operator<<(T msg);
+  BaseLogger &operator<<(T msg);
 
   explicit operator OutStream &();
 
 protected:
   BaseLogger(OutStream &stream, const char *type_str);
-
-  ~BaseLogger();
 
 private:
   OutStream &stream_;

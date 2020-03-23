@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <chrono>
+#include <csignal>
 
 using std::setw, std::move;
 using OutFileStream = std::ofstream;
@@ -19,18 +20,6 @@ constexpr auto TIME_FMT2 = "%z";
 #define LOG_FILENAME_OVERRIDE
 constexpr auto LOG_FILENAME = "log.log";
 #endif
-
-inline auto &file_logger() {
-  static OutFileStream o_file;
-  if (!o_file.is_open()) {
-    o_file.open(
-            LOG_FILENAME,
-            std::ios_base::out | std::ios_base::binary | std::ios_base::app);
-    if (!o_file.is_open())
-      cerr << "Failed to open log file: " << LOG_FILENAME << '\n';
-  }
-  return o_file;
-}
 
 constexpr inline auto log10(long n) {
   switch (n) {
@@ -61,15 +50,45 @@ auto &write_time(OutStream &stream) {
                 << std::put_time(&tm, TIME_FMT2);
 }
 
-inline OutStream &log_start(OutStream &stream, const char *type_str) {
+inline void log_start(OutStream &stream, const char *type_str);
+
+inline void sig_handler(int sig);
+
+inline auto &file_logger() {
+  static OutFileStream o_file;
+  if (!o_file.is_open()) {
+    o_file.open(
+            LOG_FILENAME,
+            std::ios_base::out | std::ios_base::binary | std::ios_base::app);
+    if (!o_file.is_open())
+      cerr << "Failed to open log file: " << LOG_FILENAME << '\n';
+
+    o_file << '\n';
+    signal(SIGABRT, sig_handler);
+    signal(SIGFPE, sig_handler);
+    signal(SIGILL, sig_handler);
+    signal(SIGINT, sig_handler);
+    signal(SIGSEGV, sig_handler);
+    signal(SIGTERM, sig_handler);
+  }
+  return o_file;
+}
+
+inline void sig_handler(int sig) {
+  write_time(file_logger() << '\n')
+          << " | ERR  | Program terminated by signal: " << sig;
+  file_logger().flush();
+}
+
+inline void log_start(OutStream &stream, const char *type_str) {
   write_time(file_logger() << '\n') << " | " << type_str << " | ";
-  return write_time(stream << '\n') << " | " << type_str << " | ";
+  write_time(stream << '\n') << " | " << type_str << " | ";
 }
 
 template<typename T>
-inline OutStream &log_append(OutStream &stream, T msg) {
+inline void log_append(OutStream &stream, T msg) {
   file_logger() << msg;
-  return stream << msg;
+  stream << msg;
 }
 
 BaseLogger::BaseLogger(OutStream &stream, const char *type_str)
@@ -77,37 +96,56 @@ BaseLogger::BaseLogger(OutStream &stream, const char *type_str)
   log_start(stream, type_str);
 }
 
-BaseLogger::~BaseLogger() {
-  flush(file_logger());
-}
-
 BaseLogger::operator OutStream &() {
   return stream_;
 }
 
 template<typename T>
-OutStream &BaseLogger::operator<<(T msg) {
-  return log_append(stream_, msg);
+BaseLogger &BaseLogger::operator<<(T msg) {
+  log_append(stream_, msg);
+  return *this;
 }
 
 template<>
-OutStream &BaseLogger::operator<<(const char *const msg) {
-  return log_append(stream_, msg);
+BaseLogger &BaseLogger::operator<<(const char *msg) {
+  log_append(stream_, msg);
+  return *this;
 }
 
 template<>
-OutStream &BaseLogger::operator<<(char *const msg) {
-  return log_append(stream_, msg);
+BaseLogger &BaseLogger::operator<<(char *msg) {
+  log_append(stream_, msg);
+  return *this;
 }
 
 template<>
-OutStream &BaseLogger::operator<<(int msg) {
-  return log_append(stream_, msg);
+BaseLogger &BaseLogger::operator<<(char msg) {
+  log_append(stream_, msg);
+  return *this;
 }
 
 template<>
-OutStream &BaseLogger::operator<<(unsigned long msg) {
-  return log_append(stream_, msg);
+BaseLogger &BaseLogger::operator<<(int msg) {
+  log_append(stream_, msg);
+  return *this;
+}
+
+template<>
+BaseLogger &BaseLogger::operator<<(unsigned short msg) {
+  log_append(stream_, msg);
+  return *this;
+}
+
+template<>
+BaseLogger &BaseLogger::operator<<(unsigned int msg) {
+  log_append(stream_, msg);
+  return *this;
+}
+
+template<>
+BaseLogger &BaseLogger::operator<<(unsigned long msg) {
+  log_append(stream_, msg);
+  return *this;
 }
 
 ErrLogger::ErrLogger() : BaseLogger(cerr, "ERR ") {
