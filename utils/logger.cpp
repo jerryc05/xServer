@@ -6,6 +6,7 @@
 
 using std::setw, std::move;
 using OutFileStream = std::ofstream;
+using std::flush;
 using TimeUnit = std::chrono::microseconds;
 using Sec = std::chrono::seconds;
 using HighResClock = std::chrono::high_resolution_clock;
@@ -20,11 +21,14 @@ constexpr auto LOG_FILENAME = "log.log";
 #endif
 
 inline auto &file_logger() {
-  static OutFileStream o_file(
-          LOG_FILENAME,
-          std::ios_base::out | std::ios_base::binary | std::ios_base::app);
-  if (!o_file.is_open())
-    cerr << "Failed to open log file: " << LOG_FILENAME << '\n';
+  static OutFileStream o_file;
+  if (!o_file.is_open()) {
+    o_file.open(
+            LOG_FILENAME,
+            std::ios_base::out | std::ios_base::binary | std::ios_base::app);
+    if (!o_file.is_open())
+      cerr << "Failed to open log file: " << LOG_FILENAME << '\n';
+  }
   return o_file;
 }
 
@@ -58,8 +62,8 @@ auto &write_time(OutStream &stream) {
 }
 
 inline OutStream &log_start(OutStream &stream, const char *type_str) {
-  write_time(file_logger()) << " | " << type_str << " | ";
-  return write_time(stream) << " | " << type_str << " | ";
+  write_time(file_logger() << '\n') << " | " << type_str << " | ";
+  return write_time(stream << '\n') << " | " << type_str << " | ";
 }
 
 template<typename T>
@@ -74,7 +78,7 @@ BaseLogger::BaseLogger(OutStream &stream, const char *type_str)
 }
 
 BaseLogger::~BaseLogger() {
-  *this << '\n';
+  flush(file_logger());
 }
 
 BaseLogger::operator OutStream &() {
@@ -87,12 +91,22 @@ OutStream &BaseLogger::operator<<(T msg) {
 }
 
 template<>
-OutStream &BaseLogger::operator<<(const char *msg) {
+OutStream &BaseLogger::operator<<(const char *const msg) {
+  return log_append(stream_, msg);
+}
+
+template<>
+OutStream &BaseLogger::operator<<(char *const msg) {
   return log_append(stream_, msg);
 }
 
 template<>
 OutStream &BaseLogger::operator<<(int msg) {
+  return log_append(stream_, msg);
+}
+
+template<>
+OutStream &BaseLogger::operator<<(unsigned long msg) {
   return log_append(stream_, msg);
 }
 

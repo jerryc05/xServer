@@ -16,11 +16,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << "ERR!  " << strerror(errno) << '\n';
+      ErrLogger() << "ERR!  " << strerror(errno);
       throw RuntimeError(ERR_STR_CREATE_SOCKET);
     }
 #ifndef NDEBUG
-    log_d() << "Socket file descriptor: " << sockfd << '\n';
+    DbgLogger() << "Socket file descriptor: " << sockfd;
 #endif
   }
 
@@ -30,11 +30,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno) << '\n';
+      ErrLogger() << strerror(errno);
       throw RuntimeError(ERR_STR_SET_SOCK_OPT_REUSE);
     }
 #ifndef NDEBUG
-    log_d() << "Socket set to reuse address!\n";
+    DbgLogger() << "Socket set to reuse address!";
 #endif
   }
 
@@ -44,7 +44,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e(strerror(errno));
+      ErrLogger() << strerror(errno);
       throw RuntimeError(ERR_STR_BIND_SOCK);
     }
 
@@ -58,11 +58,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
                                         client_addr6_str, sizeof(client_addr6_str));
         if (addr == nullptr) {
           assert(errno != 0);
-          log_e(strerror(errno));
+          ErrLogger() << strerror(errno);
           throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
         }
-        log_i(STR_SOCKET_BOUND_TO_ADDR,
-              addr, ':', ntohs(ip_addr_v4_ptr->sock_addr_in.sin_port));
+        ErrLogger() << STR_SOCKET_BOUND_TO_ADDR
+                    << addr << ':' << ntohs(ip_addr_v4_ptr->sock_addr_in.sin_port);
         break;
       }
       case IpAddrType::IpAddrV6: {
@@ -73,11 +73,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
                                         client_addr6_str, sizeof(client_addr6_str));
         if (addr == nullptr) {
           assert(errno != 0);
-          log_e(strerror(errno));
+          ErrLogger() << strerror(errno);
           throw RuntimeError(ERR_STR_INET_NTOP);
         }
-        log_i(STR_SOCKET_BOUND_TO_ADDR,
-              addr, ':', ntohs(ip_addr_v6_ptr->sock_addr_in6.sin6_port));
+        InfoLogger() << STR_SOCKET_BOUND_TO_ADDR
+                     << addr << ':' << ntohs(ip_addr_v6_ptr->sock_addr_in6.sin6_port);
         break;
       }
     }
@@ -90,11 +90,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e(strerror(errno));
+      ErrLogger() << strerror(errno);
       throw RuntimeError(ERR_STR_LISTEN_SOCK);
     }
 #ifndef NDEBUG
-    log_d("Socket listening with backlog: ", +LISTEN_BACKLOG);
+    DbgLogger() << "Socket listening with backlog: " << +LISTEN_BACKLOG;
 #endif
   }
 }
@@ -102,19 +102,19 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 Socket::~Socket() {
   close(sockfd);
 #ifndef NDEBUG
-  log_d("Socket (fd: ", sockfd, ") closed");
+  DbgLogger() << "Socket (fd: " << sockfd << ") closed";
 #endif
 }
 
 [[noreturn]] void Socket::loop() {
 #ifndef NDEBUG
-  log_d("Socket::loop() Beep!");
+  DbgLogger() << "Socket::loop() Beep!";
 #endif
 
   for (;;) {
     auto[ready_count, events] = epoll.ready_count();
 #ifndef NDEBUG
-    log_d("Queried ready epolls: ", ready_count);
+    DbgLogger() << "Queried ready epolls: " << ready_count;
 #endif
     if (ready_count <= 0)
       continue;
@@ -136,7 +136,8 @@ Socket::~Socket() {
 #ifndef NDEBUG
                 assert(errno != 0);
 #endif
-                log_e("Socket::loop() >> IpAddrV4 >> accept4():\n\t", strerror(errno));
+                ErrLogger() << "Socket::loop() >> IpAddrV4 >> accept4():\n\t"
+                            << strerror(errno);
                 continue;
               }
             }
@@ -145,8 +146,8 @@ Socket::~Socket() {
               char client_addr_str[INET_ADDRSTRLEN];
               inet_ntop(AF_INET, &(client_addr.sin_addr),
                         client_addr_str, sizeof(client_addr_str));
-              log_i("New connection from: ",
-                    client_addr_str, ':', ntohs(client_addr.sin_port));
+              InfoLogger() << "New connection from: "
+                           << client_addr_str << ':' << ntohs(client_addr.sin_port);
             }
 
             /* Re-register client's sockfd */ {
@@ -173,7 +174,8 @@ Socket::~Socket() {
 #ifndef NDEBUG
                     assert(errno != 0);
 #endif
-                    log_e("Socket::loop() >> IpAddrV4 >> recv():\n\t", strerror(errno));
+                    ErrLogger() << "Socket::loop() >> IpAddrV4 >> recv():\n\t"
+                                << strerror(errno);
                     close(client_sockfd);
                     continue;
                   }
@@ -209,7 +211,8 @@ Socket::~Socket() {
 #ifndef NDEBUG
                   assert(errno != 0);
 #endif
-                  log_e("Socket::loop() >> IpAddrV4 >> send():\n\t", strerror(errno));
+                  ErrLogger() << "Socket::loop() >> IpAddrV4 >> send():\n\t"
+                              << strerror(errno);
                   close(client_sockfd);
                   continue;
                 }
@@ -222,7 +225,8 @@ Socket::~Socket() {
 #ifndef NDEBUG
                   assert(errno != 0);
 #endif
-                  log_e("Socket::loop() >> IpAddrV4 >> close():\n\t", strerror(errno));
+                  ErrLogger() << "Socket::loop() >> IpAddrV4 >> close():\n\t"
+                              << strerror(errno);
                   continue;
                 }
               }
@@ -233,13 +237,11 @@ Socket::~Socket() {
       }
 
       case IpAddrType::IpAddrV6: {
-        log_e("Not implemented");
+        ErrLogger() << "Not implemented";
         throw RuntimeError("Not implemented");
       }
     }
   }
-//  log_e() << "Socket::loop():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
-//  throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
 }
 
 [[maybe_unused]] TcpSocket::TcpSocket(IpAddr &ip_addr_)
