@@ -6,16 +6,40 @@
 using std::cout, std::cerr;
 using OutStream = std::ostream;
 
-template<typename ...Ts>
-[[maybe_unused]] OutStream &&log_e(const Ts &...args);
+class BaseLogger {
+public:
+  template<typename T>
+  OutStream &operator<<(T msg);
 
-template<typename ...Ts>
-[[maybe_unused]] OutStream &&log_i(const Ts &...args);
+  explicit operator OutStream &();
+
+protected:
+  BaseLogger(OutStream &stream, const char *type_str);
+
+  ~BaseLogger();
+
+private:
+  OutStream &stream_;
+
+  const char *const type_str_;
+};
+
+class [[maybe_unused]] ErrLogger : public BaseLogger {
+public:
+  ErrLogger();
+};
+
+class [[maybe_unused]] InfoLogger : public BaseLogger {
+public:
+  InfoLogger();
+};
 
 #ifndef NDEBUG
 
-template<typename ...Ts>
-[[maybe_unused]] OutStream &&log_d(const Ts &...args);
+class [[maybe_unused]] DbgLogger : public BaseLogger {
+public:
+  DbgLogger();
+};
 
 #endif
 
