@@ -16,11 +16,11 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno) << '\n';
+      log_e(strerror(errno));
       throw RuntimeError(ERR_STR_EPOLL_CREATE1);
     }
 #ifndef NDEBUG
-    log_d() << "Epoll file descriptor: " << epfd << '\n';
+    log_d("Epoll file descriptor: ", epfd);
 #endif
   }
 
@@ -29,12 +29,12 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << "Epoll::Epoll() got invalid sockfd: " << sockfd << "\n\t"
-              << strerror(errno) << '\n';
+      log_e("Epoll::Epoll() got invalid sockfd: ", sockfd,
+            "\n\t", strerror(errno));
       throw RuntimeError(ERR_STR_EPOLL_GOT_INVALID_SOCKFD);
     }
 #ifndef NDEBUG
-    log_d() << "Epoll's socket file descriptor: " << sockfd << '\n';
+    log_d("Epoll's socket file descriptor: ", sockfd);
 #endif
   }
 
@@ -46,12 +46,11 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno) << '\n';
+      log_e(strerror(errno));
       throw RuntimeError(ERR_STR_EPOLL_CTL_ADD);
     }
 #ifndef NDEBUG
-    log_d() << "Registered epoll (fd: " << epfd
-            << ") with socket (fd: " << sockfd << ")\n";
+    log_d("Registered epoll (fd: ", epfd, ") with socket (fd: ", sockfd);
 #endif
   }
 }
@@ -61,8 +60,7 @@ Epoll::~Epoll() {
 #ifndef NDEBUG
     assert(errno != 0);
 #endif
-    log_e() << "Epoll::~Epoll():\n\t"
-            << strerror(errno) << '\n';
+    log_e("Epoll::~Epoll():\n\t", strerror(errno));
   }
 #ifndef NDEBUG
   log_d() << "Epoll (fd: " << epfd << ") deleted\n";

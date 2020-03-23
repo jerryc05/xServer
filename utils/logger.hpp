@@ -3,14 +3,20 @@
 
 #include <iostream>
 
-using std::cout, std::cerr, std::ostream;
+using std::cout, std::cerr;
+using OutStream = std::ostream;
 
-[[maybe_unused]] ostream &log_e();
+template<typename ...Ts>
+[[maybe_unused]] OutStream &&log_e(const Ts &...args);
 
-[[maybe_unused]] ostream &log_i();
+template<typename ...Ts>
+[[maybe_unused]] OutStream &&log_i(const Ts &...args);
 
 #ifndef NDEBUG
-[[maybe_unused]] ostream &log_d();
+
+template<typename ...Ts>
+[[maybe_unused]] OutStream &&log_d(const Ts &...args);
+
 #endif
 
 #endif //XSERVER_LOGGER_HPP

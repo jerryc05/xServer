@@ -39,14 +39,14 @@ class [[maybe_unused]] IpAddrV4 : public IpAddr {
 public:
   const SockAddrIn sock_addr_in;
 
-  [[maybe_unused]] explicit IpAddrV4(const char *ip_addr_v4, uint16_t port_num);
+  [[maybe_unused]] explicit IpAddrV4(const char *const& ip_addr_v4, uint16_t port_num);
 };
 
 class [[maybe_unused]] IpAddrV6 : public IpAddr {
 public:
   const SockAddrIn6 sock_addr_in6;
 
-  [[maybe_unused]] explicit IpAddrV6(const char *ip_addr_v6, uint16_t port_num);
+  [[maybe_unused]] explicit IpAddrV6(const char *const& ip_addr_v6, uint16_t port_num);
 };
 
 #endif // XSERVER_IPADDR_HPP

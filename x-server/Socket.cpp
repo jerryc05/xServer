@@ -1,6 +1,11 @@
 #include "Socket.hpp"
+#include <vector>
+
+template<typename T> using Vec = std::vector<T>;
 
 extern int errno;
+
+constexpr uint16_t BUFFER_CHUNK_SIZE = 128;
 
 Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
         : ip_addr(ip_addr_),
@@ -39,10 +44,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno) << '\n';
+      log_e(strerror(errno));
       throw RuntimeError(ERR_STR_BIND_SOCK);
     }
-    log_i() << "Socket bound to address: ";
+
+    constexpr auto STR_SOCKET_BOUND_TO_ADDR = "Socket bound to address: ";
     switch (ip_addr.addr_type) {
       case IpAddrType::IpAddrV4: {
         auto ip_addr_v4_ptr = reinterpret_cast<const IpAddrV4 *>(&ip_addr_);
@@ -52,10 +58,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
                                         client_addr6_str, sizeof(client_addr6_str));
         if (addr == nullptr) {
           assert(errno != 0);
-          log_e() << strerror(errno) << '\n';
+          log_e(strerror(errno));
           throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
         }
-        cout << addr << ':' << ntohs(ip_addr_v4_ptr->sock_addr_in.sin_port);
+        log_i(STR_SOCKET_BOUND_TO_ADDR,
+              addr, ':', ntohs(ip_addr_v4_ptr->sock_addr_in.sin_port));
         break;
       }
       case IpAddrType::IpAddrV6: {
@@ -66,14 +73,14 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
                                         client_addr6_str, sizeof(client_addr6_str));
         if (addr == nullptr) {
           assert(errno != 0);
-          log_e() << strerror(errno) << '\n';
+          log_e(strerror(errno));
           throw RuntimeError(ERR_STR_INET_NTOP);
         }
-        cout << addr << ':' << ntohs(ip_addr_v6_ptr->sock_addr_in6.sin6_port);
+        log_i(STR_SOCKET_BOUND_TO_ADDR,
+              addr, ':', ntohs(ip_addr_v6_ptr->sock_addr_in6.sin6_port));
         break;
       }
     }
-    cout << '\n';
     cout.flush();
   }
 
@@ -83,11 +90,11 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 #ifndef NDEBUG
       assert(errno != 0);
 #endif
-      log_e() << strerror(errno) << '\n';
+      log_e(strerror(errno));
       throw RuntimeError(ERR_STR_LISTEN_SOCK);
     }
 #ifndef NDEBUG
-    log_d() << "Socket listening with backlog: " << +LISTEN_BACKLOG << '\n';
+    log_d("Socket listening with backlog: ", +LISTEN_BACKLOG);
 #endif
   }
 }
@@ -95,17 +102,20 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
 Socket::~Socket() {
   close(sockfd);
 #ifndef NDEBUG
-  log_d() << "Socket (fd: " << sockfd << ") closed\n";
+  log_d("Socket (fd: ", sockfd, ") closed");
 #endif
 }
 
 [[noreturn]] void Socket::loop() {
 #ifndef NDEBUG
-  log_d() << "Socket::loop() Beep!\n";
+  log_d("Socket::loop() Beep!");
 #endif
 
   for (;;) {
     auto[ready_count, events] = epoll.ready_count();
+#ifndef NDEBUG
+    log_d("Queried ready epolls: ", ready_count);
+#endif
     if (ready_count <= 0)
       continue;
 
@@ -126,8 +136,7 @@ Socket::~Socket() {
 #ifndef NDEBUG
                 assert(errno != 0);
 #endif
-                log_e() << "Socket::loop() >> IpAddrV4 >> accept4():\n\t"
-                        << strerror(errno) << '\n';
+                log_e("Socket::loop() >> IpAddrV4 >> accept4():\n\t", strerror(errno));
                 continue;
               }
             }
@@ -136,8 +145,8 @@ Socket::~Socket() {
               char client_addr_str[INET_ADDRSTRLEN];
               inet_ntop(AF_INET, &(client_addr.sin_addr),
                         client_addr_str, sizeof(client_addr_str));
-              log_i() << "New connection from: "
-                      << client_addr_str << ':' << ntohs(client_addr.sin_port) << '\n';
+              log_i("New connection from: ",
+                    client_addr_str, ':', ntohs(client_addr.sin_port));
             }
 
             /* Re-register client's sockfd */ {
@@ -148,26 +157,37 @@ Socket::~Socket() {
 
           } else {
             if (events[i].events & EPOLLIN) {
-              auto client_sockfd = events[i].data.fd;
+              auto        client_sockfd = events[i].data.fd;
+              Vec<u_char> r_buf;
+              uintmax_t   r_buf_size    = 0;
 
               /* Wait for data from client */ {
-                char r_buf[512];
+                for (;;) {
+                  r_buf.reserve(r_buf_size + BUFFER_CHUNK_SIZE);
+                  auto max_recv_size = r_buf.capacity() - r_buf_size - 1;
 
-                auto n = recv(client_sockfd, r_buf, sizeof(r_buf) - 1,
-                              MSG_DONTWAIT);
-                if (n < 0) {
+                  auto n = recv(client_sockfd, &r_buf[r_buf_size],
+                                max_recv_size, MSG_DONTWAIT);
+
+                  if (n < 0) {
 #ifndef NDEBUG
-                  assert(errno != 0);
+                    assert(errno != 0);
 #endif
-                  log_e() << "Socket::loop() >> IpAddrV4 >> recv():\n\t"
-                          << strerror(errno) << '\n';
-                  close(client_sockfd);
-                  continue;
-                }
+                    log_e("Socket::loop() >> IpAddrV4 >> recv():\n\t", strerror(errno));
+                    close(client_sockfd);
+                    continue;
+                  }
 
-                r_buf[n] = 0;
-                cout << r_buf;
-                cout.flush();
+                  r_buf_size += static_cast<decltype(r_buf_size)>(n);
+                  if (static_cast<decltype(max_recv_size)>(n) == max_recv_size)
+                    continue;
+
+                  r_buf[r_buf_size] = 0;
+                  cout << r_buf.data();
+                  cout.flush();
+                  r_buf.pop_back();
+                  break;
+                }
               }
 
               /* Re-register client's sockfd */ {
@@ -189,8 +209,7 @@ Socket::~Socket() {
 #ifndef NDEBUG
                   assert(errno != 0);
 #endif
-                  log_e() << "Socket::loop() >> IpAddrV4 >> send():\n\t"
-                          << strerror(errno) << '\n';
+                  log_e("Socket::loop() >> IpAddrV4 >> send():\n\t", strerror(errno));
                   close(client_sockfd);
                   continue;
                 }
@@ -203,8 +222,7 @@ Socket::~Socket() {
 #ifndef NDEBUG
                   assert(errno != 0);
 #endif
-                  log_e() << "Socket::loop() >> IpAddrV4 >> close():\n\t"
-                          << strerror(errno) << '\n';
+                  log_e("Socket::loop() >> IpAddrV4 >> close():\n\t", strerror(errno));
                   continue;
                 }
               }
@@ -215,7 +233,7 @@ Socket::~Socket() {
       }
 
       case IpAddrType::IpAddrV6: {
-        log_e() << "Not implemented\n";
+        log_e("Not implemented");
         throw RuntimeError("Not implemented");
       }
     }
