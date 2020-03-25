@@ -20,38 +20,33 @@ constexpr auto TIME_FMT2 = "%z";
 constexpr auto LOG_FILENAME = "log.log";
 #endif
 
-constexpr inline auto log10(long n) {
-  switch (n) {
-    case 1:
-      return 0;
-    case 1000:
-      return 3;
-    case 1000000:
-      return 6;
-    case 1000000000:
-      return 9;
-    default:
-      throw RuntimeError("log10(): Invalid UNIT number");
-  }
-}
-
 auto &write_time(OutStream &stream) {
   auto now = HighResClock::now();
 
-  constexpr auto UNIT  = (Sec(1) - TimeUnit(0)).count();
-  auto           sub_s = duration_cast<TimeUnit>(now.time_since_epoch()) % UNIT;
+  constexpr auto UNIT   = (Sec(1) - TimeUnit(0)).count();
+  constexpr auto DIGITS = []() {
+    switch (UNIT) {
+      case 1:
+        return 0;
+      case 1000:
+        return 3;
+      case 1000000:
+        return 6;
+      case 1000000000:
+        return 9;
+      default:
+        throw RuntimeError("log10(): Invalid UNIT number");
+    }
+  }();
+  auto           sub_s  = duration_cast<TimeUnit>(now.time_since_epoch()) % UNIT;
 
   auto time_ = HighResClock::to_time_t(now);
   auto tm    = *std::localtime(&time_);
 
   return stream << std::put_time(&tm, TIME_FMT1)
-                << '.' << std::setfill('0') << std::setw(log10(UNIT)) << sub_s.count()
+                << '.' << std::setfill('0') << std::setw(DIGITS) << sub_s.count()
                 << std::put_time(&tm, TIME_FMT2);
 }
-
-inline void log_start(OutStream &stream, const char *type_str);
-
-inline void sig_handler(int sig);
 
 inline auto &file_logger() {
   static OutFileStream o_file;
@@ -63,6 +58,12 @@ inline auto &file_logger() {
       cerr << "Failed to open log file: " << LOG_FILENAME << '\n';
 
     o_file << '\n';
+
+    constexpr auto sig_handler = [](auto sig) {
+      write_time(o_file << '\n')
+              << " | ERR  | Program terminated by signal: " << sig;
+      o_file.flush();
+    };
     signal(SIGABRT, sig_handler);
     signal(SIGFPE, sig_handler);
     signal(SIGILL, sig_handler);
@@ -73,26 +74,16 @@ inline auto &file_logger() {
   return o_file;
 }
 
-inline void sig_handler(int sig) {
-  write_time(file_logger() << '\n')
-          << " | ERR  | Program terminated by signal: " << sig;
-  file_logger().flush();
-}
-
-inline void log_start(OutStream &stream, const char *type_str) {
-  write_time(file_logger() << '\n') << " | " << type_str << " | ";
-  write_time(stream << '\n') << " | " << type_str << " | ";
-}
-
 template<typename T>
 inline void log_append(OutStream &stream, T msg) {
   file_logger() << msg;
   stream << msg;
 }
 
-BaseLogger::BaseLogger(OutStream &stream, const char *type_str)
+BaseLogger::BaseLogger(OutStream &stream, const char *const type_str)
         : stream_(stream), type_str_(type_str) {
-  log_start(stream, type_str);
+  write_time(file_logger() << '\n') << " | " << type_str << " | ";
+  write_time(stream << '\n') << " | " << type_str << " | ";
 }
 
 BaseLogger::operator OutStream &() {

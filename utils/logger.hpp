@@ -17,7 +17,7 @@ protected:
   OutStream &stream_;
   const char *const type_str_;
 
-  BaseLogger(OutStream &stream, const char *type_str);
+  BaseLogger(OutStream &stream, const char *const type_str);
 };
 
 class [[maybe_unused]] ErrLogger : public BaseLogger {
