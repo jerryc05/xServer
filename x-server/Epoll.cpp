@@ -39,8 +39,7 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
   }
 
   /* Register epoll event */ {
-    EpollEvent event;
-    event.events  = EPOLLIN;  // available for read()
+    EpollEvent event{.events=EPOLLIN, .data={}};  // available for read()
     event.data.fd = sockfd;
     if (!ctl_interface(EPOLL_CTL_ADD, sockfd, &event)) {
 #ifndef NDEBUG
@@ -51,7 +50,7 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
     }
 #ifndef NDEBUG
     DbgLogger() << "Registered epoll (fd: " << epfd
-    << ") with socket (fd: " << sockfd << ')';
+                << ") with socket (fd: " << sockfd << ')';
 #endif
   }
 }

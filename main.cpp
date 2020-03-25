@@ -12,17 +12,21 @@ inline auto init_env() {
 #endif
 }
 
-int main([[maybe_unused]] int argc, char *argv[]) {
+int main([[maybe_unused]] int argc, char *argv[]) try {
   init_env();
 
-  uint16_t port_num = static_cast<uint16_t>(std::stoi(argv[2]));
-  if (inet_aton(argv[1], nullptr) != 0) {
-    IpAddrV4  ip(argv[1], port_num);
-    TcpSocket tcp(ip);
-    tcp.loop();
-  } else {
-    IpAddrV6  ip(argv[1], port_num);
-    TcpSocket tcp(ip);
-    tcp.loop();
-  }
+  auto tcp = [argv]() {
+    uint16_t port_num = static_cast<uint16_t>(std::stoi(argv[2]));
+    if (inet_aton(argv[1], nullptr) != 0) {
+      IpAddrV4 ip(argv[1], port_num);
+      return TcpSocket(ip);
+    } else {
+      IpAddrV6 ip(argv[1], port_num);
+      return TcpSocket(ip);
+    }
+  }();
+  tcp.loop();
+
+} catch (const RuntimeError &e) {
+  return -1;
 }
