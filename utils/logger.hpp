@@ -14,17 +14,17 @@ public:
   explicit operator OutStream &();
 
 protected:
-  BaseLogger(OutStream &stream, const char *type_str);
-
-private:
   OutStream &stream_;
-
   const char *const type_str_;
+
+  BaseLogger(OutStream &stream, const char *type_str);
 };
 
 class [[maybe_unused]] ErrLogger : public BaseLogger {
 public:
   ErrLogger();
+
+  ~ErrLogger();
 };
 
 class [[maybe_unused]] InfoLogger : public BaseLogger {

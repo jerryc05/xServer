@@ -61,7 +61,7 @@ Socket::Socket(const IpAddr &ip_addr_, int type, int protocol)
           ErrLogger() << strerror(errno);
           throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
         }
-        ErrLogger() << STR_SOCKET_BOUND_TO_ADDR
+        InfoLogger() << STR_SOCKET_BOUND_TO_ADDR
                     << addr << ':' << ntohs(ip_addr_v4_ptr->sock_addr_in.sin_port);
         break;
       }

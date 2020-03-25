@@ -7,7 +7,6 @@
 
 using std::setw, std::move;
 using OutFileStream = std::ofstream;
-using std::flush;
 using TimeUnit = std::chrono::microseconds;
 using Sec = std::chrono::seconds;
 using HighResClock = std::chrono::high_resolution_clock;
@@ -149,6 +148,11 @@ BaseLogger &BaseLogger::operator<<(unsigned long msg) {
 }
 
 ErrLogger::ErrLogger() : BaseLogger(cerr, "ERR ") {
+}
+
+ErrLogger::~ErrLogger() {
+  stream_.flush();
+  file_logger().flush();
 }
 
 InfoLogger::InfoLogger() : BaseLogger(cout, "INFO") {
