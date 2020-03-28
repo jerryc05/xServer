@@ -136,7 +136,7 @@ Socket::~Socket() {
 #ifndef NDEBUG
                 assert(errno != 0);
 #endif
-                ErrLogger() << "Socket::loop() >> IpAddrV4 >> accept4():\n\t"
+                ErrLogger() << "Socket::loop() >> IpAddrV4 >> accept4(): "
                             << strerror(errno);
                 continue;
               }
@@ -174,7 +174,7 @@ Socket::~Socket() {
 #ifndef NDEBUG
                     assert(errno != 0);
 #endif
-                    ErrLogger() << "Socket::loop() >> IpAddrV4 >> recv():\n\t"
+                    ErrLogger() << "Socket::loop() >> IpAddrV4 >> recv(): "
                                 << strerror(errno);
                     close(client_sockfd);
                     continue;
@@ -211,7 +211,7 @@ Socket::~Socket() {
 #ifndef NDEBUG
                   assert(errno != 0);
 #endif
-                  ErrLogger() << "Socket::loop() >> IpAddrV4 >> send():\n\t"
+                  ErrLogger() << "Socket::loop() >> IpAddrV4 >> send(): "
                               << strerror(errno);
                   close(client_sockfd);
                   continue;
@@ -225,7 +225,7 @@ Socket::~Socket() {
 #ifndef NDEBUG
                   assert(errno != 0);
 #endif
-                  ErrLogger() << "Socket::loop() >> IpAddrV4 >> close():\n\t"
+                  ErrLogger() << "Socket::loop() >> IpAddrV4 >> close(): "
                               << strerror(errno);
                   continue;
                 }

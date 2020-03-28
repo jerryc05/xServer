@@ -30,7 +30,7 @@ Epoll::Epoll(int sockfd_, int cloexec_flag)
       assert(errno != 0);
 #endif
       ErrLogger() << "Epoll::Epoll() got invalid sockfd: " << sockfd
-                  << "\n\t" << strerror(errno);
+                  << "" << strerror(errno);
       throw RuntimeError(ERR_STR_EPOLL_GOT_INVALID_SOCKFD);
     }
 #ifndef NDEBUG
@@ -60,7 +60,7 @@ Epoll::~Epoll() {
 #ifndef NDEBUG
     assert(errno != 0);
 #endif
-    ErrLogger() << "Epoll::~Epoll():\n\t" << strerror(errno);
+    ErrLogger() << "Epoll::~Epoll(): " << strerror(errno);
   }
 #ifndef NDEBUG
   DbgLogger() << "Epoll (fd: " << epfd << ") deleted";

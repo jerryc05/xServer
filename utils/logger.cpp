@@ -15,6 +15,13 @@ using RuntimeError = std::runtime_error;
 constexpr auto TIME_FMT1 = "%FT%T";
 constexpr auto TIME_FMT2 = "%z";
 
+#ifdef unix
+constexpr auto RED_FMT = "\033[1;91m";  // Bold High Intensity Red
+constexpr auto GRN_FMT = "\033[1;92m";  // Bold High Intensity Green
+constexpr auto LGR_FMT = "\033[0;37m";  // Light Grey
+constexpr auto NOC_FMT = "\033[0m";  // No Colors
+#endif
+
 #ifndef LOG_FILENAME_OVERRIDE
 #define LOG_FILENAME_OVERRIDE
 constexpr auto LOG_FILENAME = "log.log";
@@ -80,10 +87,12 @@ inline void log_append(OutStream &stream, T msg) {
   stream << msg;
 }
 
-BaseLogger::BaseLogger(OutStream &stream, const char *const type_str)
+BaseLogger::BaseLogger(OutStream &stream,
+                       const char *const type_str,
+                       const char *const color)
         : stream_(stream), type_str_(type_str) {
   write_time(file_logger() << '\n') << " | " << type_str << " | ";
-  write_time(stream << '\n') << " | " << type_str << " | ";
+  write_time(stream << color << '\n') << " | " << type_str << " | ";
 }
 
 BaseLogger::operator OutStream &() {
@@ -94,6 +103,10 @@ template<typename T>
 BaseLogger &BaseLogger::operator<<(T msg) {
   log_append(stream_, msg);
   return *this;
+}
+
+BaseLogger::~BaseLogger() {
+  stream_ << NOC_FMT;
 }
 
 template<>
@@ -138,7 +151,7 @@ BaseLogger &BaseLogger::operator<<(unsigned long msg) {
   return *this;
 }
 
-ErrLogger::ErrLogger() : BaseLogger(cerr, "ERR ") {
+ErrLogger::ErrLogger() : BaseLogger(cerr, "ERR ", RED_FMT) {
 }
 
 ErrLogger::~ErrLogger() {
@@ -146,8 +159,8 @@ ErrLogger::~ErrLogger() {
   file_logger().flush();
 }
 
-InfoLogger::InfoLogger() : BaseLogger(cout, "INFO") {
+InfoLogger::InfoLogger() : BaseLogger(cout, "INFO", GRN_FMT) {
 }
 
-DbgLogger::DbgLogger() : BaseLogger(cout, "DBG ") {
+DbgLogger::DbgLogger() : BaseLogger(cout, "DBG ", LGR_FMT) {
 }

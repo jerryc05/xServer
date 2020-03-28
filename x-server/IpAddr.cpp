@@ -9,7 +9,7 @@ const SockAddrFamily &IpAddr::addr_family() const {
     case IpAddrType::IpAddrV6:
       return reinterpret_cast<const IpAddrV6 *>(this)->sock_addr_in6.sin6_family;
   }
-  ErrLogger() << "IpAddr::addr_family():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
+  ErrLogger() << "IpAddr::addr_family(): " << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
   throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
 }
 
@@ -29,7 +29,7 @@ Pair<const SockAddr *, SockCallLen> IpAddr::sock_addr_info() const {
               static_cast<SockCallLen >(sizeof(ptr->sock_addr_in6))};
     }
   }
-  ErrLogger() << "IpAddr::sock_addr_info():\n\t" << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
+  ErrLogger() << "IpAddr::sock_addr_info(): " << ERR_STR_REACH_END_OF_NON_VOID_FUNC;
   throw RuntimeError(ERR_STR_REACH_END_OF_NON_VOID_FUNC);
 }
 
